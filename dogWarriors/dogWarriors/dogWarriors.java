@@ -1,4 +1,4 @@
-package game;
+package dogWarriors;
 
 import jig.ConvexPolygon;
 import jig.Entity;

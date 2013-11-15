@@ -1,4 +1,4 @@
-package game;
+package dogWarriors;
 
 public class platformWorld {
 
