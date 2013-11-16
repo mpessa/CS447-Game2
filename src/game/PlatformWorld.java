@@ -30,9 +30,9 @@ public class PlatformWorld extends Entity{
 		if(i == 1){
 			dogWarriors.g1 = new ground(dogWarriors.ScreenWidth / 2, dogWarriors.ScreenHeight - 20);
 			dogWarriors.t1 = new tower(dogWarriors.ScreenWidth / 2, dogWarriors.ScreenHeight - 70, 0);
-			dogWarriors.t2 = new tower(dogWarriors.ScreenWidth / 2, dogWarriors.ScreenHeight - 190, 1);
+			dogWarriors.t2 = new tower(dogWarriors.ScreenWidth / 2, dogWarriors.ScreenHeight - 190, 0);
 			dogWarriors.p1 = new platform(dogWarriors.ScreenWidth / 2, dogWarriors.ScreenHeight - 130);
-			dogWarriors.p2 = new platform(dogWarriors.ScreenWidth / 2, dogWarriors.ScreenHeight - 310);
+			dogWarriors.p2 = new platform(dogWarriors.ScreenWidth / 2, dogWarriors.ScreenHeight - 250);
 		}
 		if(i == 2){
 			dogWarriors.g1 = new ground(dogWarriors.ScreenWidth / 2, dogWarriors.ScreenHeight - 20);
@@ -42,6 +42,14 @@ public class PlatformWorld extends Entity{
 			dogWarriors.p2 = new platform(dogWarriors.ScreenWidth / 2, dogWarriors.ScreenHeight - 170);
 		}
 	}
+	
+	class Background extends Entity{
+		public Background(final float x, final float y){
+			super(x,y);
+			addImage(ResourceManager.getImage("resource/sky2.jpg"));
+		}
+	}
+	
 	public class ground extends Entity{
 		
 		public ground(int x, int y){
@@ -69,14 +77,18 @@ public class PlatformWorld extends Entity{
 		}
 	}
 	
-	public class simpleEnt extends Entity{
+	public class Dog extends Entity{
 		public Vector speed;
-		public boolean onSomething;
-		public simpleEnt(int x, int y){
+		public boolean onP1,onP2, onGround;
+		public int time;
+		
+		public Dog(int x, int y){
 			super(x, y);
 			this.addImageWithBoundingBox(ResourceManager.getImage("resource/brick2.png"));
 			speed = new Vector(0f, 0f);
-			onSomething = false;
+			onP1 = false;
+			onP2 = false;
+			onGround = false;
 		}
 		public void setVelocity(final Vector v){
 			speed = v;
@@ -85,6 +97,7 @@ public class PlatformWorld extends Entity{
 			return speed;
 		}
 		public void update(int delta){
+			time -= delta;
 			translate(speed.scale(delta));
 		}
 	}

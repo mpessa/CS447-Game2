@@ -1,7 +1,5 @@
 package game;
 
-//import game.PlatformWorld.Background;
-import game.PlatformWorld.ground;
 import jig.Collision;
 import jig.ConvexPolygon;
 import jig.Entity;
@@ -21,11 +19,11 @@ public class dogWarriors extends BasicGame{
 	private static final int PLATFORM = 2;
 	private static final int WORLD = 1;
 	private static final int START_UP = 0;
-	private Background back;
-	public static ground g1;
+	private PlatformWorld.Background back;
+	public static PlatformWorld.ground g1;
 	public static PlatformWorld.platform p1, p2;
 	public static PlatformWorld.tower t1, t2;
-	public PlatformWorld.simpleEnt guy;
+	public PlatformWorld.Dog spike;
 	public PlatformWorld world;
 
 	public dogWarriors(String title, int width, int height){
@@ -51,7 +49,7 @@ public class dogWarriors extends BasicGame{
 				p1.render(g);
 				p2.render(g);
 				g1.render(g);
-				guy.render(g);
+				spike.render(g);
 				break;
 		}
 		
@@ -59,10 +57,16 @@ public class dogWarriors extends BasicGame{
 
 	@Override
 	public void init(GameContainer container) throws SlickException {
+		ResourceManager.loadImage("resource/ground800.png");
+		ResourceManager.loadImage("resource/platform300.png");
+		ResourceManager.loadImage("resource/tower300x100.png");
+		ResourceManager.loadImage("resource/tower300x200.png");
+		ResourceManager.loadImage("resource/sky2.jpg");
+		
 		world = new PlatformWorld();
-		world.chooseLevel(2);
-		guy = world.new simpleEnt(ScreenWidth / 2, ScreenHeight - 70);
-		back = new Background(ScreenWidth / 2, ScreenHeight / 2);
+		world.chooseLevel(0);
+		spike = world.new Dog(ScreenWidth / 2, ScreenHeight - 70);
+		back = world.new Background(ScreenWidth / 2, ScreenHeight / 2);
 		startUp(container);
 	}
 	
@@ -88,44 +92,57 @@ public class dogWarriors extends BasicGame{
 		}
 		if(gameState == PLATFORM){
 			if(input.isKeyDown(Input.KEY_D)){
-				guy.setVelocity(new Vector(0.2f, guy.speed.getY()));
+				spike.setVelocity(new Vector(0.2f, spike.speed.getY()));
 			}
 			if(input.isKeyDown(Input.KEY_A)){
-				guy.setVelocity(new Vector(-0.2f, guy.speed.getY()));
+				spike.setVelocity(new Vector(-0.2f, spike.speed.getY()));
 			}
-			if(input.isKeyPressed(Input.KEY_W)){
-				guy.setVelocity(new Vector(guy.speed.getX(), -0.5f));
-				guy.onSomething = false;
+			if(input.isKeyPressed(Input.KEY_W) && (spike.onP1 || spike.onP2 || spike.onGround)){
+				spike.setVelocity(new Vector(spike.speed.getX(), -0.38f));
+				spike.onP1 = false;
+				spike.onP2 = false;
+				spike.onGround = false;
 			}
-			if(input.isKeyDown(Input.KEY_S) && guy.onSomething){
-				guy.onSomething = false;
+			if(input.isKeyDown(Input.KEY_S) && (spike.onP1 || spike.onP2) && !spike.onGround){
+				spike.time = 300;
+				spike.onP1 = false;
+				spike.onP2 = false;
 			}
-			if(guy.getCoarseGrainedMinX() < 0 && input.isKeyDown(Input.KEY_A)){
-				guy.setVelocity(new Vector(0.0f, 0f));
+			if(spike.getCoarseGrainedMinX() < 0 && input.isKeyDown(Input.KEY_A)){
+				spike.setVelocity(new Vector(0.0f, spike.speed.getY()));
 			}
-			if(guy.getCoarseGrainedMaxX() > ScreenWidth && input.isKeyDown(Input.KEY_D)){
-				guy.setVelocity(new Vector(0f, 0f));
-			}/*
-			if(guy.getCoarseGrainedMaxY() <= p1.getCoarseGrainedMinY() &&
-					guy.getCoarseGrainedMaxX() >= p1.getCoarseGrainedMinX() &&
-					guy.getCoarseGrainedMinX() <= p1.getCoarseGrainedMaxX()){
-				guy.setVelocity(new Vector(guy.speed.getX(), 0f));
-				System.out.println("should be hitting");
-			}*/
-			if(guy.collides(g1) != null){
-				Collision collision2 = guy.collides(g1);
-				Vector collVector2 = collision2.getMinPenetration();
-				if(collVector2.getY() <= -1.0 && !guy.onSomething){
-					System.out.println("coll y= " + collVector2.getY());
-					if(guy.speed.getY() != 0)
-						guy.setVelocity(new Vector(guy.speed.getX(), 0f));
-					guy.onSomething = true;
-				}
+			if(spike.getCoarseGrainedMaxX() > ScreenWidth && input.isKeyDown(Input.KEY_D)){
+				spike.setVelocity(new Vector(0f, spike.speed.getY()));
 			}
-			if(!guy.onSomething){
-				guy.setVelocity(guy.speed.add(new Vector(0f, 0.01f)));
+			if(!input.isKeyDown(Input.KEY_D) && !input.isKeyDown(Input.KEY_A)){
+				spike.setVelocity(new Vector(0f, spike.speed.getY()));
 			}
-			guy.update(delta);
+			if(spike.collides(g1) != null && spike.speed.getY() > 0){
+				spike.setVelocity(new Vector(0f, 0f));
+				spike.onGround = true;
+			}
+			if(spike.collides(p1) != null && spike.speed.getY() > 0 && spike.time <= 0 &&
+					spike.getCoarseGrainedMaxY() >= p1.getY() - 10 && spike.getCoarseGrainedMaxY() <= p1.getY()){
+				spike.setVelocity(new Vector(0f, 0f));
+				spike.onP1 = true;
+			}
+			if(spike.collides(p2) != null && spike.speed.getY() > 0 && spike.time <= 0 &&
+					spike.getCoarseGrainedMaxY() >= p2.getY() - 10 && spike.getCoarseGrainedMaxY() <= p2.getY()){
+				spike.setVelocity(new Vector(0f, 0f));
+				spike.onP2 = true;
+			}
+			if((spike.getCoarseGrainedMaxX() <= p1.getCoarseGrainedMinX() || spike.getCoarseGrainedMinX() >= p1.getCoarseGrainedMaxX())
+					&& !spike.onGround && spike.onP1){
+				spike.onP1 = false;
+			}
+			if((spike.getCoarseGrainedMaxX() <= p2.getCoarseGrainedMinX() || spike.getCoarseGrainedMinX() >= p2.getCoarseGrainedMaxX())
+					&& !spike.onGround && spike.onP2){
+				spike.onP2 = false;
+			}
+			if(!spike.onGround && !spike.onP1 && !spike.onP2){
+				spike.setVelocity(spike.speed.add(new Vector(0f, 0.01f)));
+			}
+			spike.update(delta);
 		}
 		
 	}
@@ -141,13 +158,6 @@ public class dogWarriors extends BasicGame{
 			e.printStackTrace();
 		}
 
-	}
-
-	class Background extends Entity{
-		public Background(final float x, final float y){
-			super(x,y);
-			addImage(ResourceManager.getImage("resource/blueBack.png"));
-		}
 	}
 
 }
