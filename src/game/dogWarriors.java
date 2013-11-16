@@ -122,12 +122,12 @@ public class dogWarriors extends BasicGame{
 				spike.onGround = true;
 			}
 			if(spike.collides(p1) != null && spike.speed.getY() > 0 && spike.time <= 0 &&
-					spike.getCoarseGrainedMaxY() >= p1.getY() - 10 && spike.getCoarseGrainedMaxY() <= p1.getY()){
+					spike.getCoarseGrainedMaxY() >= p1.getY() - 15 && spike.getCoarseGrainedMaxY() <= p1.getY()){
 				spike.setVelocity(new Vector(0f, 0f));
 				spike.onP1 = true;
 			}
 			if(spike.collides(p2) != null && spike.speed.getY() > 0 && spike.time <= 0 &&
-					spike.getCoarseGrainedMaxY() >= p2.getY() - 10 && spike.getCoarseGrainedMaxY() <= p2.getY()){
+					spike.getCoarseGrainedMaxY() >= p2.getY() - 15 && spike.getCoarseGrainedMaxY() <= p2.getY()){
 				spike.setVelocity(new Vector(0f, 0f));
 				spike.onP2 = true;
 			}
