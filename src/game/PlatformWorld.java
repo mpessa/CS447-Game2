@@ -77,28 +77,4 @@ public class PlatformWorld extends Entity{
 		}
 	}
 	
-	public class Dog extends Entity{
-		public Vector speed;
-		public boolean onP1,onP2, onGround;
-		public int time;
-		
-		public Dog(int x, int y){
-			super(x, y);
-			this.addImageWithBoundingBox(ResourceManager.getImage("resource/brick2.png"));
-			speed = new Vector(0f, 0f);
-			onP1 = false;
-			onP2 = false;
-			onGround = false;
-		}
-		public void setVelocity(final Vector v){
-			speed = v;
-		}
-		public Vector getVelocity(){
-			return speed;
-		}
-		public void update(int delta){
-			time -= delta;
-			translate(speed.scale(delta));
-		}
-	}
 }

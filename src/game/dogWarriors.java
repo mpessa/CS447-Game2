@@ -1,5 +1,7 @@
 package game;
 
+import java.util.Iterator;
+
 import jig.Collision;
 import jig.ConvexPolygon;
 import jig.Entity;
@@ -9,6 +11,7 @@ import jig.Vector;
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.BasicGame;
+import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
@@ -23,7 +26,7 @@ public class dogWarriors extends BasicGame{
 	public static PlatformWorld.ground g1;
 	public static PlatformWorld.platform p1, p2;
 	public static PlatformWorld.tower t1, t2;
-	public PlatformWorld.Dog spike;
+	public Dog spike;
 	public PlatformWorld world;
 
 	public dogWarriors(String title, int width, int height){
@@ -50,6 +53,12 @@ public class dogWarriors extends BasicGame{
 				p2.render(g);
 				g1.render(g);
 				spike.render(g);
+				if(spike.onGround || spike.onP1 || spike.onP2){
+					spike.walk.draw(spike.getX() - 24, spike.getY() - 24);
+				}
+				if(!spike.onGround && !spike.onP1 && !spike.onP2){
+					spike.jump.draw(spike.getX() - 24, spike.getY() - 24);
+				}
 				break;
 		}
 		
@@ -65,7 +74,7 @@ public class dogWarriors extends BasicGame{
 		
 		world = new PlatformWorld();
 		world.chooseLevel(0);
-		spike = world.new Dog(ScreenWidth / 2, ScreenHeight - 70);
+		spike = new Dog(ScreenWidth / 2, ScreenHeight - 70);
 		back = world.new Background(ScreenWidth / 2, ScreenHeight / 2);
 		startUp(container);
 	}
@@ -93,12 +102,21 @@ public class dogWarriors extends BasicGame{
 		if(gameState == PLATFORM){
 			if(input.isKeyDown(Input.KEY_D)){
 				spike.setVelocity(new Vector(0.2f, spike.speed.getY()));
+				if(spike.direction == 1){
+					spike.change = true;
+				}
+				spike.walk.start();
 			}
 			if(input.isKeyDown(Input.KEY_A)){
 				spike.setVelocity(new Vector(-0.2f, spike.speed.getY()));
+				if(spike.direction == 0){
+					spike.change = true;
+				}
+				spike.walk.start();
 			}
 			if(input.isKeyPressed(Input.KEY_W) && (spike.onP1 || spike.onP2 || spike.onGround)){
 				spike.setVelocity(new Vector(spike.speed.getX(), -0.38f));
+				spike.jump();
 				spike.onP1 = false;
 				spike.onP2 = false;
 				spike.onGround = false;
@@ -116,22 +134,26 @@ public class dogWarriors extends BasicGame{
 			}
 			if(!input.isKeyDown(Input.KEY_D) && !input.isKeyDown(Input.KEY_A)){
 				spike.setVelocity(new Vector(0f, spike.speed.getY()));
+				spike.walk.stop();
 			}
 			if(input.isKeyPressed(Input.KEY_X)){
 				container.exit();
 			}
 			if(spike.collides(g1) != null && spike.speed.getY() > 0){
 				spike.setVelocity(new Vector(0f, 0f));
+				spike.hitGround();
 				spike.onGround = true;
 			}
 			if(spike.collides(p1) != null && spike.speed.getY() > 0 && spike.time <= 0 &&
 					spike.getCoarseGrainedMaxY() >= p1.getY() - 20 && spike.getCoarseGrainedMaxY() <= p1.getY()){
 				spike.setVelocity(new Vector(0f, 0f));
+				spike.hitGround();
 				spike.onP1 = true;
 			}
 			if(spike.collides(p2) != null && spike.speed.getY() > 0 && spike.time <= 0 &&
 					spike.getCoarseGrainedMaxY() >= p2.getY() - 20 && spike.getCoarseGrainedMaxY() <= p2.getY()){
 				spike.setVelocity(new Vector(0f, 0f));
+				spike.hitGround();
 				spike.onP2 = true;
 			}
 			if((spike.getCoarseGrainedMaxX() <= p1.getCoarseGrainedMinX() || spike.getCoarseGrainedMinX() >= p1.getCoarseGrainedMaxX())
