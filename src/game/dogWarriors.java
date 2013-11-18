@@ -13,6 +13,7 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.tiled.TiledMap;
 
 public class dogWarriors extends BasicGame{
 	public static int ScreenHeight, ScreenWidth, gameState;
@@ -25,6 +26,10 @@ public class dogWarriors extends BasicGame{
 	public static PlatformWorld.tower t1, t2;
 	public PlatformWorld.Dog spike;
 	public PlatformWorld world;
+	private TiledMap worldMap;
+	private int shiftX;
+	private int shiftY;
+	
 
 	public dogWarriors(String title, int width, int height){
 		super(title);
@@ -40,7 +45,14 @@ public class dogWarriors extends BasicGame{
 			throws SlickException {
 		switch(gameState){
 			case WORLD:
-				//back.render(g);
+				int screenX = shiftX*32 - ScreenHeight/2;
+				int screenY = shiftY*32 - ScreenWidth/2;
+				//int screenY = worldMap.getTileHeight()*32 - shiftY*32;
+				worldMap.render(0, 0, 0 , 0, 30 ,30);
+				g.fillRect(shiftX*32, shiftY*32, 32, 32);
+				g.drawString("shiftX value: " + shiftX + "\nshiftY value: " + shiftY, 10, 80);
+				g.drawString("THe value of screen math " + screenX + " the value of screen height " + screenY, 10, 120 );
+				
 				break;
 			case PLATFORM:
 				back.render(g);
@@ -62,21 +74,27 @@ public class dogWarriors extends BasicGame{
 		ResourceManager.loadImage("resource/tower300x100.png");
 		ResourceManager.loadImage("resource/tower300x200.png");
 		ResourceManager.loadImage("resource/sky2.jpg");
-		
+		shiftX = 15;
+		shiftY = 11;
 		world = new PlatformWorld();
 		world.chooseLevel(0);
 		spike = world.new Dog(ScreenWidth / 2, ScreenHeight - 70);
 		back = world.new Background(ScreenWidth / 2, ScreenHeight / 2);
+		worldMap = new TiledMap("game/resource/demo.tmx", "game/resource");
 		startUp(container);
+		
+		
+
 	}
 	
 	public void startUp(GameContainer container) {
-		gameState = START_UP;
+		gameState = WORLD;
 		container.setSoundOn(false);
 	}
 	
 	public void newGame(GameContainer container) {
-		gameState = PLATFORM;
+		gameState = WORLD;
+		
 		container.setSoundOn(true);
 	}
 
@@ -87,8 +105,35 @@ public class dogWarriors extends BasicGame{
 
 		if(gameState == START_UP){
 			if(input.isKeyDown(Input.KEY_ENTER)){
-				gameState = PLATFORM;
+				gameState = WORLD;
+				
 			}
+		}
+		if(gameState == WORLD){
+			int objectLayer = worldMap.getLayerIndex("object");
+			
+			if(input.isKeyDown(Input.KEY_D)  ) {
+				if(shiftX  < 29.0f && worldMap.getTileId(shiftX + 1, shiftY, objectLayer) == 0)
+					shiftX ++;
+				
+			}
+			if(input.isKeyDown(Input.KEY_A)){
+				if(shiftX > 0 && worldMap.getTileId(shiftX - 1, shiftY, objectLayer ) == 0)
+					shiftX--;
+				
+			}
+			if(input.isKeyDown(Input.KEY_W)){
+				if(shiftY  > 0.0f && worldMap.getTileId(shiftX, shiftY - 1, objectLayer) == 0)
+					shiftY--;
+			}
+			if(input.isKeyDown(Input.KEY_S)){
+				if(shiftY < 29.0f && worldMap.getTileId(shiftX, shiftY + 1, objectLayer) == 0)
+					shiftY++;
+			
+				
+			}
+			
+			
 		}
 		if(gameState == PLATFORM){
 			if(input.isKeyDown(Input.KEY_D)){
