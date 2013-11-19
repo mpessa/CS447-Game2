@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="30" height="30" tilewidth="32" tileheight="32">
+ <tileset firstgid="1" name="wood_tileset_3" tilewidth="32" tileheight="32">
+  <image source="wood_tileset_3.png" width="512" height="512"/>
+ </tileset>
+ <layer name="background" width="30" height="30">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAA2NkYGBgJAPLkKmPUjxq76i9o/YSj12R8HCyVwaHWZTYi8tMZDl6Y1qmOzYgZgdiDhrbhW6vGBCLA7EEne1VA2J1INags730ilN0e2ntp4Gyl955ZRSP4lE8ikcCBgBdWBn7EA4AAA==
+  </data>
+ </layer>
+ <layer name="object" width="30" height="30">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAA+3TJxICQRBA0b0w3ADuQg6OHBxxAUcOjhwcOSi+XNmzNbBmftWz3aKrLcvkRT74PdgbQPAPe8KIIIoY4kggiRTSivNCwplZ5JBHAUWUUEYFVcEu520ywpl1NNBEC23Y6KCLnmCv8zY14cwBhhhhjAmmmGGOhWCvs75w5gprbLDFDnsccMRJce9SOPOCK26444EnXnjjo7j3/IOZXib9Ex25+RMdufkT3Un/RHfSPzGZTCaTSaUvA6mY2BAOAAA=
+  </data>
+ </layer>
+</map>
