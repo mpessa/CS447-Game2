@@ -26,9 +26,14 @@ public class dogWarriors extends BasicGame{
 	public static PlatformWorld.tower t1, t2;
 	public PlatformWorld.Dog spike;
 	public PlatformWorld world;
+	public worldDog dog;
 	private TiledMap worldMap;
 	private int shiftX;
 	private int shiftY;
+	private int charX;
+	private int charY;
+	
+	
 	
 
 	public dogWarriors(String title, int width, int height){
@@ -45,14 +50,17 @@ public class dogWarriors extends BasicGame{
 			throws SlickException {
 		switch(gameState){
 			case WORLD:
-				int screenX = shiftX*32 - ScreenHeight/2;
-				int screenY = shiftY*32 - ScreenWidth/2;
-				//int screenY = worldMap.getTileHeight()*32 - shiftY*32;
-				worldMap.render(0, 0, 0 , 0, 30 ,30);
-				g.fillRect(shiftX*32, shiftY*32, 32, 32);
-				g.drawString("shiftX value: " + shiftX + "\nshiftY value: " + shiftY, 10, 80);
-				g.drawString("THe value of screen math " + screenX + " the value of screen height " + screenY, 10, 120 );
+				//get the screen position by subtracting where the character is by 
+				//where the screen is
+				int screenX = charX - shiftX/32;
+				int screenY = charY - shiftY/32;
 				
+				//render the map according to the screen x and y 
+				worldMap.render(0, 0, screenX, screenY, 30, 30);
+				g.fillRect(shiftX, shiftY, 32, 32);
+				//g.drawString("shiftX value: " + shiftX + "\nshiftY value: " + shiftY, 10, 80);
+				//g.drawString("THe value of screen width " + screenX/32 + " the value of screen height " + screenY/32, 10, 120 );
+				dog.render(g);
 				break;
 			case PLATFORM:
 				back.render(g);
@@ -70,21 +78,26 @@ public class dogWarriors extends BasicGame{
 	@Override
 	public void init(GameContainer container) throws SlickException {
 		ResourceManager.loadImage("resource/ground800.png");
-		ResourceManager.loadImage("resource/platform300.png");
+		ResourceManager.loadImage("resource/platfor300.png");
 		ResourceManager.loadImage("resource/tower300x100.png");
 		ResourceManager.loadImage("resource/tower300x200.png");
 		ResourceManager.loadImage("resource/sky2.jpg");
-		shiftX = 15;
-		shiftY = 11;
+		ResourceManager.loadImage("resource/j.png");
+		//find the half way point for the x and y coordinates
+		//multiply by 32 to prevent rounding errors.
+		shiftX = 32*((ScreenWidth/2)/32);
+		shiftY = 32*((ScreenHeight/2)/32);
+		//get the starting position for the character
+		charX = 15;
+		charY = 11;
 		world = new PlatformWorld();
 		world.chooseLevel(0);
+		
 		spike = world.new Dog(ScreenWidth / 2, ScreenHeight - 70);
 		back = world.new Background(ScreenWidth / 2, ScreenHeight / 2);
 		worldMap = new TiledMap("game/resource/demo.tmx", "game/resource");
+		dog = new worldDog(shiftX, shiftY, 0.0f, 0.0f);
 		startUp(container);
-		
-		
-
 	}
 	
 	public void startUp(GameContainer container) {
@@ -110,27 +123,33 @@ public class dogWarriors extends BasicGame{
 			}
 		}
 		if(gameState == WORLD){
+			
 			int objectLayer = worldMap.getLayerIndex("object");
 			
-			if(input.isKeyDown(Input.KEY_D)  ) {
-				if(shiftX  < 29.0f && worldMap.getTileId(shiftX + 1, shiftY, objectLayer) == 0)
-					shiftX ++;
+			if(input.isKeyPressed(Input.KEY_D)  ) {
+				if(charX < 29 && worldMap.getTileId(charX + 1, charY, objectLayer) == 0)
+					charX += 1;
 				
+				//if(charX == 28 && worldMap.getTileId(charX + 1, charY, objectLayer) == 0)
+					//charX += 1;
 			}
-			if(input.isKeyDown(Input.KEY_A)){
-				if(shiftX > 0 && worldMap.getTileId(shiftX - 1, shiftY, objectLayer ) == 0)
-					shiftX--;
-				
+			if(input.isKeyPressed(Input.KEY_A)){ 
+				if(charX > 0 && worldMap.getTileId(charX - 1, charY, objectLayer) == 0)
+					charX -= 1;
+				//if(charX == 1 && worldMap.getTileId(charX - 1, charY, objectLayer) == 0)
+					//charX -= 1;
 			}
-			if(input.isKeyDown(Input.KEY_W)){
-				if(shiftY  > 0.0f && worldMap.getTileId(shiftX, shiftY - 1, objectLayer) == 0)
-					shiftY--;
+			if(input.isKeyPressed(Input.KEY_W)){
+				if(charY > 0 && worldMap.getTileId(charX, charY - 1, objectLayer) == 0)
+					charY -= 1;
+				//if(charY == 1 && worldMap.getTileId(charX, charY - 1, objectLayer) == 0)
+					//charY -= 1;
 			}
-			if(input.isKeyDown(Input.KEY_S)){
-				if(shiftY < 29.0f && worldMap.getTileId(shiftX, shiftY + 1, objectLayer) == 0)
-					shiftY++;
-			
-				
+			if(input.isKeyPressed(Input.KEY_S)){
+				if(charY < 29  && worldMap.getTileId(charX, charY + 1, objectLayer) == 0)
+					charY += 1;
+				//if(charY == 28  && worldMap.getTileId(charX, charY + 1, objectLayer) == 0)
+					//charY += 1;
 			}
 			
 			
@@ -204,5 +223,12 @@ public class dogWarriors extends BasicGame{
 		}
 
 	}
+	public worldDog getDog() {
+		return dog;
+	}
 
+	public void setDog(worldDog dog) {
+		this.dog = dog;
+	}	
+	
 }
