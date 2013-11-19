@@ -13,7 +13,7 @@ import jig.Vector;
 
 public class Dog extends Entity{
 	public Vector speed;
-	public int level, maxHP, maxSlobber, currentHP, currentSlobber;
+	public int level, maxHP, maxSlobber, currentHP, currentSlobber, attPwr;
 	public boolean onP1,onP2, onGround, change, shot, kicking;
 	public int time, direction, kTime, sTime, cooldown;
 	public SpriteSheet jumping, walkingR, walkingL, cyclone, shootingR, shootingL;
@@ -22,16 +22,17 @@ public class Dog extends Entity{
 	
 	public Dog(int x, int y) throws SlickException{
 		super(x, y);
-		normal = new ConvexPolygon(15f, 42f);
+		normal = new ConvexPolygon(17f, 42f);
 		inAir = new ConvexPolygon(17, 30);
 		leg = new ConvexPolygon(40f, 8f);
 		this.addShape(inAir, new Vector(0f, 5f), null, Color.black);
 		direction = 1;
-		level = 2;
+		level = 4;
 		maxHP = 100;
 		maxSlobber = 10;
 		currentHP = maxHP;
 		currentSlobber = maxSlobber;
+		attPwr = 50;
 		change = false;
 		jumping = new SpriteSheet(ResourceManager.getImage("resource/dogJump.png"), 48, 48);
 		walkingR = new SpriteSheet(ResourceManager.getImage("resource/dogWalkR.png"), 38, 45);
@@ -68,8 +69,8 @@ public class Dog extends Entity{
 		this.addShape(leg, new Vector(0f, 8f), null, Color.black);
 		if(!onGround && !onP1 && !onP2){
 			this.removeShape(inAir);
+			this.addShape(normal, new Vector(-7f, -3f), null, Color.black);
 		}
-		this.addShape(normal, new Vector(-7f, -3f), null, Color.black);
 	}
 	public void endKick(){
 		this.removeShape(leg);

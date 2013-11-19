@@ -8,6 +8,7 @@ import jig.Vector;
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.BasicGame;
+import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
@@ -54,14 +55,16 @@ public class PlatformWorld extends Entity{
 		
 		public ground(int x, int y){
 			super(x,y);
-			this.addImageWithBoundingBox(ResourceManager.getImage("resource/ground800.png"));
+			this.addImage(ResourceManager.getImage("resource/ground800.png"));
+			this.addShape(new ConvexPolygon(800f, 30f));
 		}
 	}
 	
 	public class platform extends Entity{
 		public platform(int x, int y){
 			super(x, y);
-			this.addImageWithBoundingBox(ResourceManager.getImage("resource/platform300.png"));
+			this.addImage(ResourceManager.getImage("resource/platform300.png"));
+			this.addShape(new ConvexPolygon(300f, 30f));
 		}
 	}
 	

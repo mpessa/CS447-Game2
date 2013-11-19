@@ -70,16 +70,17 @@ public class dogWarriors extends BasicGame{
 				}
 				else if((spike.onGround || spike.onP1 || spike.onP2) && spike.kTime <= 0 && !spike.shot){
 					spike.walk.draw(spike.getX() - 24, spike.getY() - 24);
-					for(int i = 0; i < cats.size(); i++){
-						ninja = cats.get(i);
-						ninja.walk.draw(ninja.getX() - 24, ninja.getY() - 24);
-					}
 				}
 				else if(!spike.onGround && !spike.onP1 && !spike.onP2 && spike.kTime <= 0 && !spike.shot){
 					spike.jump.draw(spike.getX() - 24, spike.getY() - 24);
-					for(int i = 0; i < cats.size(); i++){
-						ninja = cats.get(i);
+				}
+				for(int i = 0; i < cats.size(); i++){
+					ninja = cats.get(i);
+					if(!ninja.onGround && !ninja.onP1 && !ninja.onP2){
 						ninja.jump.draw(ninja.getX() - 24, ninja.getY() - 24);
+					}
+					if(ninja.onGround || ninja.onP1 || ninja.onP2){
+						ninja.walk.draw(ninja.getX() - 24, ninja.getY() - 24);
 					}
 				}
 				if(ball.exists){
@@ -115,7 +116,17 @@ public class dogWarriors extends BasicGame{
 		world = new PlatformWorld();
 		world.chooseLevel(0);
 		spike = new Dog(ScreenWidth / 2, ScreenHeight - 70);
-		ninja = new Cat(3 * ScreenWidth / 4, ScreenHeight - 70);
+		ninja = new Cat(3 * ScreenWidth / 4, ScreenHeight - 70, 1);
+		ninja.setVelocity(new Vector(-0.2f, 0f));
+		cats.add(ninja);
+		ninja = new Cat(ScreenWidth / 4, ScreenHeight - 70, 2);
+		ninja.setVelocity(new Vector(0.2f, 0f));
+		cats.add(ninja);
+		ninja = new Cat(ScreenWidth / 3, ScreenHeight - 70, 3);
+		ninja.setVelocity(new Vector(-0.2f, 0f));
+		cats.add(ninja);
+		ninja = new Cat(ScreenWidth / 4, ScreenHeight - 200, 4);
+		ninja.setVelocity(new Vector(0.2f, 0f));
 		cats.add(ninja);
 		back = world.new Background(ScreenWidth / 2, ScreenHeight / 2);
 		ball = new waterBall(ScreenWidth / 2, ScreenHeight / 2);
@@ -150,14 +161,6 @@ public class dogWarriors extends BasicGame{
 					spike.change = true;
 				}
 				spike.walk.start();
-				for(int i = 0; i < cats.size(); i++){
-					ninja = cats.get(i);
-					ninja.setVelocity(new Vector(0.2f, ninja.speed.getY()));
-					if(ninja.direction == 1){
-						ninja.change = true;
-					}
-					ninja.walk.start();
-				}
 			}
 			if(input.isKeyDown(Input.KEY_A)){
 				spike.setVelocity(new Vector(-0.2f, spike.speed.getY()));
@@ -165,28 +168,15 @@ public class dogWarriors extends BasicGame{
 					spike.change = true;
 				}
 				spike.walk.start();
-				for(int i = 0; i < cats.size(); i++){
-					ninja = cats.get(i);
-					ninja.setVelocity(new Vector(-0.2f, ninja.speed.getY()));
-					if(ninja.direction == 0){
-						ninja.change = true;
-					}
-				}
 			}
 			if(input.isKeyPressed(Input.KEY_W) && (spike.onP1 || spike.onP2 || spike.onGround)){
 				spike.setVelocity(new Vector(spike.speed.getX(), -0.38f));
-				spike.jump();
+				if(!spike.kicking){
+					spike.jump();
+				}
 				spike.onP1 = false;
 				spike.onP2 = false;
 				spike.onGround = false;
-				for(int i = 0; i < cats.size(); i++){
-					ninja = cats.get(i);
-					ninja.setVelocity(new Vector(ninja.speed.getX(), -0.38f));
-					ninja.jump.restart();
-					ninja.onP1 = false;
-					ninja.onP2 = false;
-					ninja.onGround = false;
-				}
 			}
 			if(input.isKeyDown(Input.KEY_S) && (spike.onP1 || spike.onP2) && !spike.onGround){
 				spike.time = 300;
@@ -235,12 +225,6 @@ public class dogWarriors extends BasicGame{
 				spike.setVelocity(new Vector(0f, 0f));
 				spike.hitGround();
 				spike.onGround = true;
-				for(int i = 0; i < cats.size(); i++){
-					ninja = cats.get(i);
-					ninja.setVelocity(new Vector(0f, 0f));
-					ninja.jump.stop();
-					ninja.onGround = true;
-				}
 			}
 			if(spike.collides(p1) != null && spike.speed.getY() > 0 && spike.time <= 0 &&
 					spike.getCoarseGrainedMaxY() >= p1.getY() - 20 && spike.getCoarseGrainedMaxY() <= p1.getY()){
@@ -264,15 +248,73 @@ public class dogWarriors extends BasicGame{
 				spike.jump();
 				spike.onP2 = false;
 			}
+			//Cat movement
+			for(int i = 0; i < cats.size(); i++){
+				ninja = cats.get(i);
+				if(ninja.collides(g1) != null && ninja.speed.getY() > 0){
+					ninja.setVelocity(new Vector(ninja.speed.getX(), 0f));
+					ninja.jump.stop();
+					ninja.onGround = true;
+				}
+				if(ninja.collides(p1) != null && ninja.speed.getY() > 0 && 
+						ninja.getCoarseGrainedMaxY() >= p1.getY() - 20 && ninja.getCoarseGrainedMaxY() <= p1.getY()){
+					ninja.setVelocity(new Vector(ninja.speed.getX(), 0f));
+					ninja.jump.stop();
+					ninja.onP1 = true;
+				}
+				if(ninja.collides(p2) != null && ninja.speed.getY() > 0 && 
+						ninja.getCoarseGrainedMaxY() >= p2.getY() - 20 && ninja.getCoarseGrainedMaxY() <= p2.getY()){
+					ninja.setVelocity(new Vector(ninja.speed.getX(), 0f));
+					ninja.jump.stop();
+					ninja.onP2 = true;
+				}
+				if(ninja.time <= 0){
+					ninja.setVelocity(new Vector(ninja.speed.getX(), -0.38f));
+					ninja.jump.restart();
+					ninja.time = 2000;
+					ninja.onP1 = false;
+					ninja.onP2 = false;
+					ninja.onGround = false;
+				}
+				if((ninja.getCoarseGrainedMaxX() <= p1.getCoarseGrainedMinX() || ninja.getCoarseGrainedMinX() >= p1.getCoarseGrainedMaxX())
+					&& !ninja.onGround && ninja.onP1){
+					ninja.onP1 = false;
+					}
+				if((ninja.getCoarseGrainedMaxX() <= p2.getCoarseGrainedMinX() || ninja.getCoarseGrainedMinX() >= p2.getCoarseGrainedMaxX())
+						&& !ninja.onGround && ninja.onP2){
+					ninja.onP2 = false;
+				}
+				if(ninja.getCoarseGrainedMinX() <= 0 || ninja.getCoarseGrainedMaxX() >= ScreenWidth){
+					ninja.setVelocity(new Vector(-ninja.speed.getX(), ninja.speed.getY()));
+					ninja.change = true;
+				}
+			}
+			//Cat and dog collisions
+			for(int i = 0; i < cats.size(); i++){
+				ninja = cats.get(i);
+				if(spike.collides(ninja) != null && ninja.hitTime <= 0){
+					if(spike.getCoarseGrainedMaxY() > ninja.getY() - 10){
+						spike.setVelocity(spike.speed.negate());
+						ninja.setVelocity(new Vector(0f, 0f));
+						ninja.currentHP -= spike.attPwr;
+						if(ninja.currentHP <= 0)
+							cats.remove(i);
+						ninja.hitTime = 300;
+					}
+				}
+			}
+			//Gravity for cats and dog
 			if(!spike.onGround && !spike.onP1 && !spike.onP2){
 				spike.setVelocity(spike.speed.add(new Vector(0f, 0.01f)));
 			}
 			for(int i = 0; i < cats.size(); i++){
+				ninja = cats.get(i);
 				if(!ninja.onGround && !ninja.onP1 && !ninja.onP2){
 					ninja.setVelocity(ninja.speed.add(new Vector(0f, 0.01f)));
 				}
 				ninja.update(delta);
 			}
+			//Dog special abilities
 			if(spike.kicking && spike.kTime <= 0){
 				spike.kicking = false;
 				spike.endKick();
