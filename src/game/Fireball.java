@@ -1,6 +1,8 @@
 package game;
 
+import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
+import org.newdawn.slick.SpriteSheet;
 
 import jig.ConvexPolygon;
 import jig.Entity;
@@ -9,17 +11,19 @@ import jig.Vector;
 
 public class Fireball extends Entity{
 	private Vector velocity;
-	public boolean exists;
+	public SpriteSheet fireball;
+	public Animation fire;
 	
 	public Fireball(final float x, final float y, final float vx, final float vy, int dir){
 		super(x,y);
-		exists = false;
-		if(dir == 0)
-			this.addImage(ResourceManager.getImage("resource/fireballR.png"));
+		if(dir == 0){
+			this.fireball = new SpriteSheet(ResourceManager.getImage("resource/fireballR.png"), 32, 25);
+		}
 		if(dir == 1)
-			this.addImage(ResourceManager.getImage("resource/fireballL.png"));
-		this.addShape(new ConvexPolygon(10, 30), new Vector(0f, 0f), null, Color.black);
-		velocity = new Vector(vx, vy);
+			this.fireball = new SpriteSheet(ResourceManager.getImage("resource/fireballL.png"), 32, 25);
+		this.fire = new Animation(fireball, 150);
+		this.addShape(new ConvexPolygon(10, 30), new Vector(17f, 13f), null, Color.black);
+		this.velocity = new Vector(vx, vy);
 	}
 
 	public void setVelocity(final Vector v) {
@@ -31,6 +35,6 @@ public class Fireball extends Entity{
 	}
 
 	public void update(final int delta){
-		translate(velocity.scale(delta));
+		this.translate(velocity.scale(delta));
 	}
 }

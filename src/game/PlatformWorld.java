@@ -3,16 +3,6 @@ package game;
 import jig.ConvexPolygon;
 import jig.Entity;
 import jig.ResourceManager;
-import jig.Vector;
-
-import org.newdawn.slick.Animation;
-import org.newdawn.slick.AppGameContainer;
-import org.newdawn.slick.BasicGame;
-import org.newdawn.slick.Color;
-import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Graphics;
-import org.newdawn.slick.Input;
-import org.newdawn.slick.SlickException;
 
 public class PlatformWorld extends Entity{
 	

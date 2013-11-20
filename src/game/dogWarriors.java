@@ -32,6 +32,9 @@ public class dogWarriors extends BasicGame{
 	public PlatformWorld world;
 	public waterBall ball;
 	public WaterShield shield;
+	public FireShield fShield;
+	public Fireball fBall;
+	public ArrayList<Fireball> fire;
 
 	public dogWarriors(String title, int width, int height){
 		super(title);
@@ -40,6 +43,7 @@ public class dogWarriors extends BasicGame{
 
 		Entity.setCoarseGrainedCollisionBoundary(Entity.AABB);
 		cats = new ArrayList<Cat>(5);
+		fire = new ArrayList<Fireball>(5);
 	}
 	
 
@@ -76,18 +80,32 @@ public class dogWarriors extends BasicGame{
 				}
 				for(int i = 0; i < cats.size(); i++){
 					ninja = cats.get(i);
-					if(!ninja.onGround && !ninja.onP1 && !ninja.onP2){
+					if(ninja.canKick && ninja.kTime > 0){
+						ninja.kick.draw(ninja.getX() - 24, ninja.getY() - 24);
+					}
+					else if(ninja.canFire && ninja.sTime > 0){
+						ninja.shoot.draw(ninja.getX() - 24, ninja.getY() - 24);
+					}
+					else if(!ninja.onGround && !ninja.onP1 && !ninja.onP2){
 						ninja.jump.draw(ninja.getX() - 24, ninja.getY() - 24);
 					}
-					if(ninja.onGround || ninja.onP1 || ninja.onP2){
+					else if(ninja.onGround || ninja.onP1 || ninja.onP2){
 						ninja.walk.draw(ninja.getX() - 24, ninja.getY() - 24);
 					}
+				}
+				for(int i = 0; i < fire.size(); i++){
+					fBall = fire.get(i);
+					fBall.render(g);
+					fBall.fire.draw(fBall.getX(), fBall.getY());
 				}
 				if(ball.exists){
 					ball.render(g);
 				}
 				if(shield.exists){
 					shield.render(g);
+				}
+				if(fShield.exists){
+					fShield.render(g);
 				}
 				break;
 		}
@@ -127,6 +145,7 @@ public class dogWarriors extends BasicGame{
 		cats.add(ninja);
 		ninja = new Cat(ScreenWidth / 4, ScreenHeight - 200, 4);
 		ninja.setVelocity(new Vector(0.2f, 0f));
+		fShield = new FireShield(ninja.getX(), ninja.getY());
 		cats.add(ninja);
 		back = world.new Background(ScreenWidth / 2, ScreenHeight / 2);
 		ball = new waterBall(ScreenWidth / 2, ScreenHeight / 2);
@@ -268,13 +287,42 @@ public class dogWarriors extends BasicGame{
 					ninja.jump.stop();
 					ninja.onP2 = true;
 				}
-				if(ninja.time <= 0){
+				if(ninja.time <= 0 && ninja.level <= 2){
 					ninja.setVelocity(new Vector(ninja.speed.getX(), -0.38f));
 					ninja.jump.restart();
 					ninja.time = 2000;
 					ninja.onP1 = false;
 					ninja.onP2 = false;
 					ninja.onGround = false;
+				}
+				if(ninja.time <= 0 && ninja.level == 3){
+					if(ninja.onGround || ninja.onP1 || ninja.onP2)
+						ninja.setVelocity(new Vector(ninja.speed.getX(), -0.38f));
+					if(ninja.speed.getX() < 0)
+						ninja.kick = ninja.kickL;
+					if(ninja.speed.getX() > 0)
+						ninja.kick = ninja.kickR;
+					ninja.time = 3000;
+					ninja.kTime = 450;
+					ninja.kick.restart();
+					ninja.onP1 = false;
+					ninja.onP2 = false;
+					ninja.onGround = false;
+				}
+				if(ninja.time <= 0 && ninja.level == 4){
+					if(ninja.speed.getX() < 0){
+						ninja.shoot = ninja.shootL;
+						fBall = new Fireball(ninja.getX() - 20, ninja.getY(), -0.1f, 0f, 1);
+					}
+					if(ninja.speed.getX() > 0){
+						ninja.shoot = ninja.shootR;
+						fBall = new Fireball(ninja.getX(), ninja.getY(), 0.1f, 0f, 0);
+					}
+					fire.add(fBall);
+					ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
+					ninja.time = 1000;
+					ninja.sTime = 450;
+					ninja.shoot.restart();
 				}
 				if((ninja.getCoarseGrainedMaxX() <= p1.getCoarseGrainedMinX() || ninja.getCoarseGrainedMinX() >= p1.getCoarseGrainedMaxX())
 					&& !ninja.onGround && ninja.onP1){
@@ -287,6 +335,9 @@ public class dogWarriors extends BasicGame{
 				if(ninja.getCoarseGrainedMinX() <= 0 || ninja.getCoarseGrainedMaxX() >= ScreenWidth){
 					ninja.setVelocity(new Vector(-ninja.speed.getX(), ninja.speed.getY()));
 					ninja.change = true;
+				}
+				if(ninja.level == 4 && fShield.exists){
+					fShield.setPosition(ninja.getX() - 6, ninja.getY() - 12);
 				}
 			}
 			//Cat and dog collisions
@@ -335,6 +386,11 @@ public class dogWarriors extends BasicGame{
 				if(spike.direction == 1){
 					ball.setVelocity(new Vector(-0.5f, 0f));
 				}
+			}
+			for(int i = 0; i < fire.size(); i++){
+				System.out.println(i);
+				fBall = fire.get(i);
+				fBall.update(delta);
 			}
 			if(shield.exists){
 				shield.setPosition(spike.getX() - 5, spike.getY());
