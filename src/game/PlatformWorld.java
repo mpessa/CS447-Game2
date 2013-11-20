@@ -3,15 +3,6 @@ package game;
 import jig.ConvexPolygon;
 import jig.Entity;
 import jig.ResourceManager;
-import jig.Vector;
-
-import org.newdawn.slick.Animation;
-import org.newdawn.slick.AppGameContainer;
-import org.newdawn.slick.BasicGame;
-import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Graphics;
-import org.newdawn.slick.Input;
-import org.newdawn.slick.SlickException;
 
 public class PlatformWorld extends Entity{
 	
@@ -54,14 +45,16 @@ public class PlatformWorld extends Entity{
 		
 		public ground(int x, int y){
 			super(x,y);
-			this.addImageWithBoundingBox(ResourceManager.getImage("resource/ground800.png"));
+			this.addImage(ResourceManager.getImage("resource/ground800.png"));
+			this.addShape(new ConvexPolygon(800f, 30f));
 		}
 	}
 	
 	public class platform extends Entity{
 		public platform(int x, int y){
 			super(x, y);
-			this.addImageWithBoundingBox(ResourceManager.getImage("resource/platform300.png"));
+			this.addImage(ResourceManager.getImage("resource/platform300.png"));
+			this.addShape(new ConvexPolygon(300f, 30f));
 		}
 	}
 	
@@ -77,28 +70,4 @@ public class PlatformWorld extends Entity{
 		}
 	}
 	
-	public class Dog extends Entity{
-		public Vector speed;
-		public boolean onP1,onP2, onGround;
-		public int time;
-		
-		public Dog(int x, int y){
-			super(x, y);
-			this.addImageWithBoundingBox(ResourceManager.getImage("resource/brick2.png"));
-			speed = new Vector(0f, 0f);
-			onP1 = false;
-			onP2 = false;
-			onGround = false;
-		}
-		public void setVelocity(final Vector v){
-			speed = v;
-		}
-		public Vector getVelocity(){
-			return speed;
-		}
-		public void update(int delta){
-			time -= delta;
-			translate(speed.scale(delta));
-		}
-	}
 }
