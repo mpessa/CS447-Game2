@@ -16,7 +16,6 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.tiled.TiledMap;
 
 public class dogWarriors extends BasicGame{
 	public static int ScreenHeight, ScreenWidth, gameState;
@@ -31,12 +30,6 @@ public class dogWarriors extends BasicGame{
 	public ArrayList<Cat> cats;
 	public Cat ninja;
 	public PlatformWorld world;
-	public worldDog dog;
-	private TiledMap worldMap;
-	private int shiftX;
-	private int shiftY;
-	private int charX;
-	private int charY;
 	public waterBall ball;
 	public WaterShield shield;
 	public FireShield fShield;
@@ -59,17 +52,7 @@ public class dogWarriors extends BasicGame{
 			throws SlickException {
 		switch(gameState){
 			case WORLD:
-				//get the screen position by subtracting where the character is by 
-				//where the screen is
-				int screenX = charX - shiftX/32;
-				int screenY = charY - shiftY/32;
-				
-				//render the map according to the screen x and y 
-				worldMap.render(0, 0, screenX, screenY, 30, 30);
-				g.fillRect(shiftX, shiftY, 32, 32);
-				//g.drawString("shiftX value: " + shiftX + "\nshiftY value: " + shiftY, 10, 80);
-				//g.drawString("THe value of screen width " + screenX/32 + " the value of screen height " + screenY/32, 10, 120 );
-				dog.render(g);
+				//back.render(g);
 				break;
 			case PLATFORM:
 				back.render(g);
@@ -147,17 +130,9 @@ public class dogWarriors extends BasicGame{
 		ResourceManager.loadImage("resource/dogWalkR.png");
 		ResourceManager.loadImage("resource/waterball.png");
 		ResourceManager.loadImage("resource/waterShield.png");
-		ResourceManager.loadImage("resource/j.png");
-		//find the half way point for the x and y coordinates
-		//multiply by 32 to prevent rounding errors.
-		shiftX = 32*((ScreenWidth/2)/32);
-		shiftY = 32*((ScreenHeight/2)/32);
-		//get the starting position for the character
-		charX = 15;
-		charY = 11;
+		
 		world = new PlatformWorld();
 		world.chooseLevel(0);
-		
 		spike = new Dog(ScreenWidth / 2, ScreenHeight - 70);
 		ninja = new Cat(3 * ScreenWidth / 4, ScreenHeight - 70, 1);
 		ninja.setVelocity(new Vector(-0.2f, 0f));
@@ -173,21 +148,18 @@ public class dogWarriors extends BasicGame{
 		fShield = new FireShield(ninja.getX(), ninja.getY());
 		cats.add(ninja);
 		back = world.new Background(ScreenWidth / 2, ScreenHeight / 2);
-		worldMap = new TiledMap("game/resource/demo.tmx", "game/resource");
-		dog = new worldDog(shiftX, shiftY, 0.0f, 0.0f);
 		ball = new waterBall(ScreenWidth / 2, ScreenHeight / 2);
 		shield = new WaterShield(ScreenWidth / 2, ScreenHeight / 2);
 		startUp(container);
 	}
 	
 	public void startUp(GameContainer container) {
-		gameState = WORLD;
+		gameState = START_UP;
 		container.setSoundOn(false);
 	}
 	
 	public void newGame(GameContainer container) {
-		gameState = WORLD;
-		
+		gameState = PLATFORM;
 		container.setSoundOn(true);
 	}
 
@@ -198,41 +170,8 @@ public class dogWarriors extends BasicGame{
 
 		if(gameState == START_UP){
 			if(input.isKeyDown(Input.KEY_ENTER)){
-				gameState = WORLD;
-				
+				gameState = PLATFORM;
 			}
-		}
-		if(gameState == WORLD){
-			
-			int objectLayer = worldMap.getLayerIndex("object");
-			
-			if(input.isKeyPressed(Input.KEY_D)  ) {
-				if(charX < 29 && worldMap.getTileId(charX + 1, charY, objectLayer) == 0)
-					charX += 1;
-				
-				//if(charX == 28 && worldMap.getTileId(charX + 1, charY, objectLayer) == 0)
-					//charX += 1;
-			}
-			if(input.isKeyPressed(Input.KEY_A)){ 
-				if(charX > 0 && worldMap.getTileId(charX - 1, charY, objectLayer) == 0)
-					charX -= 1;
-				//if(charX == 1 && worldMap.getTileId(charX - 1, charY, objectLayer) == 0)
-					//charX -= 1;
-			}
-			if(input.isKeyPressed(Input.KEY_W)){
-				if(charY > 0 && worldMap.getTileId(charX, charY - 1, objectLayer) == 0)
-					charY -= 1;
-				//if(charY == 1 && worldMap.getTileId(charX, charY - 1, objectLayer) == 0)
-					//charY -= 1;
-			}
-			if(input.isKeyPressed(Input.KEY_S)){
-				if(charY < 29  && worldMap.getTileId(charX, charY + 1, objectLayer) == 0)
-					charY += 1;
-				//if(charY == 28  && worldMap.getTileId(charX, charY + 1, objectLayer) == 0)
-					//charY += 1;
-			}
-			
-			
 		}
 		if(gameState == PLATFORM){
 			if(input.isKeyDown(Input.KEY_D)){
@@ -328,6 +267,94 @@ public class dogWarriors extends BasicGame{
 				spike.jump();
 				spike.onP2 = false;
 			}
+			//Cat movement
+			for(int i = 0; i < cats.size(); i++){
+				ninja = cats.get(i);
+				if(ninja.collides(g1) != null && ninja.speed.getY() > 0){
+					ninja.setVelocity(new Vector(ninja.speed.getX(), 0f));
+					ninja.jump.stop();
+					ninja.onGround = true;
+				}
+				if(ninja.collides(p1) != null && ninja.speed.getY() > 0 && 
+						ninja.getCoarseGrainedMaxY() >= p1.getY() - 20 && ninja.getCoarseGrainedMaxY() <= p1.getY()){
+					ninja.setVelocity(new Vector(ninja.speed.getX(), 0f));
+					ninja.jump.stop();
+					ninja.onP1 = true;
+				}
+				if(ninja.collides(p2) != null && ninja.speed.getY() > 0 && 
+						ninja.getCoarseGrainedMaxY() >= p2.getY() - 20 && ninja.getCoarseGrainedMaxY() <= p2.getY()){
+					ninja.setVelocity(new Vector(ninja.speed.getX(), 0f));
+					ninja.jump.stop();
+					ninja.onP2 = true;
+				}
+				if(ninja.time <= 0 && ninja.level <= 2){
+					ninja.setVelocity(new Vector(ninja.speed.getX(), -0.38f));
+					ninja.jump.restart();
+					ninja.time = 2000;
+					ninja.onP1 = false;
+					ninja.onP2 = false;
+					ninja.onGround = false;
+				}
+				if(ninja.time <= 0 && ninja.level == 3){
+					if(ninja.onGround || ninja.onP1 || ninja.onP2)
+						ninja.setVelocity(new Vector(ninja.speed.getX(), -0.38f));
+					if(ninja.speed.getX() < 0)
+						ninja.kick = ninja.kickL;
+					if(ninja.speed.getX() > 0)
+						ninja.kick = ninja.kickR;
+					ninja.time = 3000;
+					ninja.kTime = 450;
+					ninja.kick.restart();
+					ninja.onP1 = false;
+					ninja.onP2 = false;
+					ninja.onGround = false;
+				}
+				if(ninja.time <= 0 && ninja.level == 4){
+					if(ninja.speed.getX() < 0){
+						ninja.shoot = ninja.shootL;
+						fBall = new Fireball(ninja.getX() - 20, ninja.getY(), -0.1f, 0f, 1);
+					}
+					if(ninja.speed.getX() > 0){
+						ninja.shoot = ninja.shootR;
+						fBall = new Fireball(ninja.getX(), ninja.getY(), 0.1f, 0f, 0);
+					}
+					fire.add(fBall);
+					ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
+					ninja.time = 1000;
+					ninja.sTime = 450;
+					ninja.shoot.restart();
+				}
+				if((ninja.getCoarseGrainedMaxX() <= p1.getCoarseGrainedMinX() || ninja.getCoarseGrainedMinX() >= p1.getCoarseGrainedMaxX())
+					&& !ninja.onGround && ninja.onP1){
+					ninja.onP1 = false;
+					}
+				if((ninja.getCoarseGrainedMaxX() <= p2.getCoarseGrainedMinX() || ninja.getCoarseGrainedMinX() >= p2.getCoarseGrainedMaxX())
+						&& !ninja.onGround && ninja.onP2){
+					ninja.onP2 = false;
+				}
+				if(ninja.getCoarseGrainedMinX() <= 0 || ninja.getCoarseGrainedMaxX() >= ScreenWidth){
+					ninja.setVelocity(new Vector(-ninja.speed.getX(), ninja.speed.getY()));
+					ninja.change = true;
+				}
+				if(ninja.level == 4 && fShield.exists){
+					fShield.setPosition(ninja.getX() - 6, ninja.getY() - 12);
+				}
+			}
+			//Cat and dog collisions
+			for(int i = 0; i < cats.size(); i++){
+				ninja = cats.get(i);
+				if(spike.collides(ninja) != null && ninja.hitTime <= 0){
+					if(spike.getCoarseGrainedMaxY() > ninja.getY() - 10){
+						spike.setVelocity(spike.speed.negate());
+						ninja.setVelocity(new Vector(0f, 0f));
+						ninja.currentHP -= spike.attPwr;
+						if(ninja.currentHP <= 0)
+							cats.remove(i);
+						ninja.hitTime = 300;
+					}
+				}
+			}
+			//Gravity for cats and dog
 			if(!spike.onGround && !spike.onP1 && !spike.onP2){
 				spike.setVelocity(spike.speed.add(new Vector(0f, 0.01f)));
 			}
@@ -388,12 +415,5 @@ public class dogWarriors extends BasicGame{
 		}
 
 	}
-	public worldDog getDog() {
-		return dog;
-	}
 
-	public void setDog(worldDog dog) {
-		this.dog = dog;
-	}	
-	
 }
