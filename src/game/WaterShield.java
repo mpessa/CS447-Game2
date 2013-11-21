@@ -8,12 +8,24 @@ import jig.ResourceManager;
 import jig.Vector;
 
 public class WaterShield extends Entity{
+	
+	public static final Color defaultColor = Color.black;
+	public static final float defaultRadius = 37.5f;
+	public static final int numSides = 30;
+	
+	public static float radius = defaultRadius;
+	public static Color color = defaultColor;
+	
 	public boolean exists;
 	
-	public WaterShield(final float x, final float y){
+	// refactor this into a Shield class, with different types!
+	public WaterShield(final float x, final float y) {
 		super(x, y);
-		exists = false;
-		addImage(ResourceManager.getImage("resource/waterShield.png"));
-		this.addShape(new ConvexPolygon(37.5f, 30), new Vector(0f, 0f), null, Color.black);
+		
+		this.exists = false;
+		
+		this.addImage(ResourceManager.getImage(DogWarriors.battleImages[4]));
+		this.addShape(new ConvexPolygon(WaterShield.radius, WaterShield.numSides),
+					  new Vector(0.0f, 0.0f), null, WaterShield.color);
 	}
 }

@@ -4,68 +4,47 @@ import jig.ConvexPolygon;
 import jig.Entity;
 import jig.ResourceManager;
 
-public class PlatformWorld extends Entity{
+/**
+ * Now what have we here? A class for holding other classes, I guess...
+ * 
+ * @author Matthew Pessa
+ */
+public class PlatformWorld extends Entity {
 	
-	public PlatformWorld(){
-
-	}
-
-	public void chooseLevel(int i){
-		if(i == 0){
-			dogWarriors.g1 = new ground(dogWarriors.ScreenWidth / 2, dogWarriors.ScreenHeight - 20);
-			dogWarriors.t1 = new tower(dogWarriors.ScreenWidth / 4, dogWarriors.ScreenHeight - 70, 0);
-			dogWarriors.t2 = new tower(3 * dogWarriors.ScreenWidth / 4, dogWarriors.ScreenHeight - 70, 1);
-			dogWarriors.p1 = new platform(dogWarriors.ScreenWidth / 4, dogWarriors.ScreenHeight - 130);
-			dogWarriors.p2 = new platform(3 * dogWarriors.ScreenWidth / 4, dogWarriors.ScreenHeight - 170);
-		}
-		if(i == 1){
-			dogWarriors.g1 = new ground(dogWarriors.ScreenWidth / 2, dogWarriors.ScreenHeight - 20);
-			dogWarriors.t1 = new tower(dogWarriors.ScreenWidth / 2, dogWarriors.ScreenHeight - 70, 0);
-			dogWarriors.t2 = new tower(dogWarriors.ScreenWidth / 2, dogWarriors.ScreenHeight - 190, 0);
-			dogWarriors.p1 = new platform(dogWarriors.ScreenWidth / 2, dogWarriors.ScreenHeight - 130);
-			dogWarriors.p2 = new platform(dogWarriors.ScreenWidth / 2, dogWarriors.ScreenHeight - 250);
-		}
-		if(i == 2){
-			dogWarriors.g1 = new ground(dogWarriors.ScreenWidth / 2, dogWarriors.ScreenHeight - 20);
-			dogWarriors.t1 = new tower(dogWarriors.ScreenWidth / 3, dogWarriors.ScreenHeight - 70, 0);
-			dogWarriors.t2 = new tower(dogWarriors.ScreenWidth / 2, dogWarriors.ScreenHeight - 70, 1);
-			dogWarriors.p1 = new platform(dogWarriors.ScreenWidth / 3, dogWarriors.ScreenHeight - 130);
-			dogWarriors.p2 = new platform(dogWarriors.ScreenWidth / 2, dogWarriors.ScreenHeight - 170);
-		}
+	public PlatformWorld() {
+		// THIS SPACE POSSIBLY INTENTIONALLY LEFT BLANK
 	}
 	
-	class Background extends Entity{
-		public Background(final float x, final float y){
+	public class Background extends Entity {
+		public Background(final float x, final float y) {
 			super(x,y);
-			addImage(ResourceManager.getImage("resource/sky2.jpg"));
+			this.addImage(ResourceManager.getImage(DogWarriors.worldImages[3]));
 		}
 	}
 	
-	public class ground extends Entity{
-		
-		public ground(int x, int y){
+	public class Ground extends Entity {
+		public Ground(int x, int y) {
 			super(x,y);
-			this.addImage(ResourceManager.getImage("resource/ground800.png"));
+			this.addImage(ResourceManager.getImage(DogWarriors.worldImages[1]));
 			this.addShape(new ConvexPolygon(800f, 30f));
 		}
 	}
 	
-	public class platform extends Entity{
-		public platform(int x, int y){
+	public class Platform extends Entity {
+		public Platform(int x, int y) {
 			super(x, y);
-			this.addImage(ResourceManager.getImage("resource/platform300.png"));
+			this.addImage(ResourceManager.getImage(DogWarriors.worldImages[2]));
 			this.addShape(new ConvexPolygon(300f, 30f));
 		}
 	}
 	
-	public class tower extends Entity{
-		public tower(int x, int y, int size){
+	public class Tower extends Entity{
+		public Tower(int x, int y, int type){
 			super(x, y);
-			if(size == 0){
-				this.addImage(ResourceManager.getImage("resource/tower300x100.png"));
-			}
-			if(size == 1){
-				this.addImage(ResourceManager.getImage("resource/tower300x200.png"));
+			if (type == 0) {
+				this.addImage(ResourceManager.getImage(DogWarriors.worldImages[4]));
+			} else if (type == 1) {
+				this.addImage(ResourceManager.getImage(DogWarriors.worldImages[5]));
 			}
 		}
 	}

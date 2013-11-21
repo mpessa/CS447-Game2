@@ -11,92 +11,124 @@ import jig.ResourceManager;
 import jig.Shape;
 import jig.Vector;
 
-public class Dog extends Entity{
-	public Vector speed;
-	public int level, maxHP, maxSlobber, currentHP, currentSlobber, attPwr;
-	public boolean onP1,onP2, onGround, change, shot, kicking;
-	public int time, direction, kTime, sTime, cooldown;
+/**
+ * Player character used in the Platform World. Likes to slobber.
+ * 
+ * @author Matthew Pessa
+ */
+public class Dog extends Entity {
+	public boolean onP1, onP2, onGround; // Maybe just have onPlatform instead of specific platforms.
+	public boolean change; // ???
+	public boolean shot, kicking; // True if this Dog is executing these abilities
+	public int kTime, sTime; // Ability timers
+	public int cooldown; // ?
+	public int time; // ?
+	public int level; // Level of this Dog
+	public int maxHP, currentHP; // Hit points (Life) remaining
+	public int maxSlobber, currentSlobber; // Amount of slobber remaining (used for what, who knows?)
+	public int attPwr; // Damage dealt by this dog to enemy Cats.
+	public int direction; // ?
+
+	public Vector speed; // Speed of this Dog
+	public Shape normal, inAir, leg; // Collision boundaries
 	public SpriteSheet jumping, walkingR, walkingL, cyclone, shootingR, shootingL;
 	public Animation jump, walkR, walkL, walk, kick, shoot, shootR, shootL;
-	public Shape normal, inAir, leg;
 	
-	public Dog(int x, int y) throws SlickException{
+	public Dog(int x, int y) throws SlickException {
 		super(x, y);
-		normal = new ConvexPolygon(17f, 42f);
-		inAir = new ConvexPolygon(17, 30);
-		leg = new ConvexPolygon(40f, 8f);
+		this.speed = new Vector(0f, 0f);
+		this.direction = 1;
+		this.level = 4;
+		this.maxHP = 100;
+		this.currentHP = maxHP;
+		this.maxSlobber = 10;
+		this.currentSlobber = maxSlobber;
+		this.attPwr = 50;
+		this.sTime = 0;
+		this.cooldown = 0;
+		this.kTime = 0;
+		this.change = false;
+		this.shot = false;
+		this.onP1 = false;
+		this.onP2 = false;
+		// this.onPlatform = false
+		this.onGround = false;
+		
+		this.normal = new ConvexPolygon(17f, 42f);
+		this.inAir = new ConvexPolygon(17, 30);
+		this.leg = new ConvexPolygon(40f, 8f);
+		
 		this.addShape(inAir, new Vector(0f, 5f), null, Color.black);
-		direction = 1;
-		level = 4;
-		maxHP = 100;
-		maxSlobber = 10;
-		currentHP = maxHP;
-		currentSlobber = maxSlobber;
-		attPwr = 50;
-		change = false;
-		jumping = new SpriteSheet(ResourceManager.getImage("resource/dogJump.png"), 48, 48);
-		walkingR = new SpriteSheet(ResourceManager.getImage("resource/dogWalkR.png"), 38, 45);
-		walkingL = new SpriteSheet(ResourceManager.getImage("resource/dogWalkL.png"), 38, 45);
-		cyclone = new SpriteSheet(ResourceManager.getImage("resource/dogKick.png"), 47, 45);
-		shootingR = new SpriteSheet(ResourceManager.getImage("resource/dogShootR.png"), 38, 45);
-		shootingL = new SpriteSheet(ResourceManager.getImage("resource/dogShootL.png"), 38, 45);
-		walkR = new Animation(walkingR, 150);
-		walkL = new Animation(walkingL, 150);
-		walk = walkR;
-		jump = new Animation(jumping, 100);
-		kick = new Animation(cyclone, 75);
-		kTime = 0;
-		shootR = new Animation(shootingR, 200);
-		shootL = new Animation(shootingL, 200);
-		shoot = shootR;
-		shot = false;
-		sTime = 0;
-		cooldown = 0;
-		speed = new Vector(0f, 0f);
-		onP1 = false;
-		onP2 = false;
-		onGround = false;
+		this.bestowAbilities();
 	}
-	public void hitGround(){
+	
+	/**
+	 * Gives this Dog animated abilities.
+	 */
+	public void bestowAbilities() {
+		this.jumping = new SpriteSheet(ResourceManager.getImage(DogWarriors.dogImages[0]), 48, 48);
+		this.walkingR = new SpriteSheet(ResourceManager.getImage(DogWarriors.dogImages[5]), 38, 45);
+		this.walkingL = new SpriteSheet(ResourceManager.getImage(DogWarriors.dogImages[4]), 38, 45);
+		this.cyclone = new SpriteSheet(ResourceManager.getImage(DogWarriors.dogImages[1]), 47, 45);
+		this.shootingR = new SpriteSheet(ResourceManager.getImage(DogWarriors.dogImages[3]), 38, 45);
+		this.shootingL = new SpriteSheet(ResourceManager.getImage(DogWarriors.dogImages[2]), 38, 45);
+		
+		this.walkR = new Animation(walkingR, 150);
+		this.walkL = new Animation(walkingL, 150);
+		this.walk = walkR;
+		this.jump = new Animation(jumping, 100);
+		this.kick = new Animation(cyclone, 75);
+		this.shootR = new Animation(shootingR, 200);
+		this.shootL = new Animation(shootingL, 200);
+		this.shoot = shootR;
+	}
+	
+	public void hitGround() {
 		this.addShape(normal, new Vector(-7f, -3f), null, Color.black);
 		this.removeShape(inAir);
 	}
-	public void jump(){
+	
+	public void jump() {
 		this.addShape(inAir, new Vector(0f, 5f), null, Color.black);
 		this.removeShape(normal);
 	}
-	public void startKick(){
+	
+	public void startKick() {
 		this.addShape(leg, new Vector(0f, 8f), null, Color.black);
-		if(!onGround && !onP1 && !onP2){
+		if (!onGround && !onP1 && !onP2) {
 			this.removeShape(inAir);
 			this.addShape(normal, new Vector(-7f, -3f), null, Color.black);
 		}
 	}
+	
 	public void endKick(){
 		this.removeShape(leg);
 		this.removeShape(normal);
-		if(!onGround && !onP1 && !onP2){
+		if (!onGround && !onP1 && !onP2) {
 			jump();
 		}
 	}
-	public void setVelocity(final Vector v){
+	
+	public void setVelocity(final Vector v) {
 		speed = v;
 	}
-	public Vector getVelocity(){
+	
+	public Vector getVelocity() {
 		return speed;
 	}
-	public void update(int delta){
+	
+	public void update(int delta) {
 		time -= delta;
 		kTime -= delta;
 		sTime -= delta;
 		cooldown -= delta;
-		if(change){
+		if (change) {
 			change = false;
-			if(this.direction == 1){
+			if (this.direction == 1) {
 				walk = walkR;
 				this.direction = 0;
 			}
-			else if(this.direction == 0){
+			else if(this.direction == 0) {
 				walk = walkL;
 				this.direction = 1;
 			}
