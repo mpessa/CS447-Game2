@@ -3,7 +3,7 @@ package game;
 import org.newdawn.slick.util.pathfinding.PathFindingContext;
 import org.newdawn.slick.util.pathfinding.TileBasedMap;
 
-public class worldMap implements TileBasedMap{
+public class WorldMap implements TileBasedMap{
 	private boolean [][] visited = new boolean[30][30];
 	private int [][] tiles = new int[][]{
 			{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
