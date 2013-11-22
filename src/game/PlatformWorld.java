@@ -12,7 +12,7 @@ import jig.ResourceManager;
 public class PlatformWorld extends Entity {
 	
 	public PlatformWorld() {
-		// THIS SPACE POSSIBLY INTENTIONALLY LEFT BLANK
+		// THIS SPACE INTENTIONALLY LEFT BLANK
 	}
 	
 	public class Background extends Entity {
