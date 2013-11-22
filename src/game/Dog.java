@@ -18,16 +18,16 @@ import jig.Vector;
  */
 public class Dog extends Entity {
 	public boolean onP1, onP2, onGround; // Maybe just have onPlatform instead of specific platforms.
-	public boolean change; // ???
+	public boolean change; // Boolean value to indicate a change of direction
 	public boolean shot, kicking; // True if this Dog is executing these abilities
 	public int kTime, sTime; // Ability timers
-	public int cooldown; // ?
-	public int time; // ?
+	public int cooldown; // Time before another ability can be used
+	public int time; // Timer to remove player ability to move after a hit
 	public int level; // Level of this Dog
 	public int maxHP, currentHP; // Hit points (Life) remaining
-	public int maxSlobber, currentSlobber; // Amount of slobber remaining (used for what, who knows?)
-	public int attPwr; // Damage dealt by this dog to enemy Cats.
-	public int direction; // ?
+	public int maxSlobber, currentSlobber; // Amount of slobber remaining, used to power special abilities
+	public int attPwr, spPwr; // Damage dealt by this dog to enemy Cats.
+	public int direction; // Indicates which direction Dog is currently facing
 
 	public Vector speed; // Speed of this Dog
 	public Shape normal, inAir, leg; // Collision boundaries
@@ -44,9 +44,11 @@ public class Dog extends Entity {
 		this.maxSlobber = 10;
 		this.currentSlobber = maxSlobber;
 		this.attPwr = 50;
+		this.spPwr = 100;
 		this.sTime = 0;
 		this.cooldown = 0;
 		this.kTime = 0;
+		this.time = 0;
 		this.change = false;
 		this.shot = false;
 		this.onP1 = false;

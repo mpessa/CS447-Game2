@@ -18,17 +18,19 @@ import jig.Vector;
  */
 public class Cat extends Entity{
 	public boolean onP1, onP2, onGround; // Maybe just have onPlatform instead of specific platforms
-	public boolean change; // ?
+	public boolean change; // Indicates that a change in direction is needed
 	public boolean dead; // True if this Cat is dead
+	public boolean done; // True if this Cat is dead and has hit the ground
 	public boolean canFire, canKick, canShield; // Abilities
 	public int fTime, kTime, sTime; // Ability timers
 	public int time; // ?
-	public int hitTime; // ?
+	public int hitTime; // Timer between possible hits
 	public int level; // Higher level = More powerful Cat
 	public int maxHP, currentHP; // Hit points of Cat
+	public int attPwr; //Amount of damage that the Cat deals
 	
 	public Vector speed; // Speed of this Cat
-	public Shape normal; // ?
+	public Shape normal; // Fine grained bounding box created for cat
 	private SpriteSheet jumping, walkingR, walkingL, shootingR, shootingL, kickingR, kickingL, dyingR, dyingL;
 	public Animation jump, walkR, walkL, walk, shootR, shootL, shoot, kickR, kickL, kick, dieR, dieL, die;
 	
@@ -46,7 +48,7 @@ public class Cat extends Entity{
 		this.currentHP = maxHP;
 		this.hitTime = 0;
 		this.speed = new Vector(0.0f, 0.0f);
-		
+		this.attPwr = 10; //Scale by level later
 		this.change = false;
 		this.dead = false;
 		this.onGround = false;
@@ -60,8 +62,13 @@ public class Cat extends Entity{
 	}
 	
 	public void kill() {
-		this.speed = new Vector(0.0f, 0.0f);
-		this.removeShape(normal);
+		//this.speed = new Vector(0.0f, 0.0f);
+		if(this.onGround || this.onP1 || this.onP2){
+			this.setVelocity(new Vector(0f, 0f));
+			this.removeShape(normal);
+			this.done = true;
+		}
+		this.die.stop();
 	}
 	
 	public void setVelocity(final Vector v) {
