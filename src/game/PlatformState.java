@@ -92,6 +92,8 @@ public class PlatformState extends BasicGameState {
 			throws SlickException {
 		
 		back.render(g);
+		g.drawString("HP: " + spike.currentHP + "/" + spike.maxHP, 0, 30);
+		g.drawString("Slobber: " + spike.currentSlobber + "/" + spike.maxSlobber, 0, 50);
 		t1.render(g);
 		t2.render(g);
 		p1.render(g);
@@ -366,10 +368,16 @@ public class PlatformState extends BasicGameState {
 		}
 		if(ball.collides(fShield) != null && ball.exists && fShield.exists){
 			ball.exists = false;
-			//play sound
+			//play sound and animation
 			ball.setPosition(0, 0);
 			fShield.exists = false;
 			fShield.setPosition(0, 0);
+		}
+		if(fShield.collides(shield) != null && shield.exists && fShield.exists){
+			shield.exists = false;
+			fShield.exists = false;
+			fShield.setPosition(0, 0);
+			//play sound and animation
 		}
 		if(spike.collides(fShield) != null && fShield.exists){
 			//play sound
@@ -492,7 +500,9 @@ public class PlatformState extends BasicGameState {
 			spike.onP2 = false;
 		}
 		
-		if(input.isKeyPressed(DogWarriors.CONTROLS_KICK) && spike.cooldown <= 0 && spike.level >= 2) {
+		if(input.isKeyPressed(DogWarriors.CONTROLS_KICK) && spike.cooldown <= 0 && spike.level >= 2
+				&& spike.currentSlobber >= 1) {
+			spike.currentSlobber -= 1;
 			spike.kick.restart();
 			spike.startKick();
 			//play sound
@@ -501,7 +511,9 @@ public class PlatformState extends BasicGameState {
 			spike.cooldown = 1500;
 		}
 		
-		if(input.isKeyPressed(DogWarriors.CONTROLS_SHOOT) && !spike.shot && spike.cooldown <= 0 && spike.level >= 3) {
+		if(input.isKeyPressed(DogWarriors.CONTROLS_SHOOT) && !spike.shot && spike.cooldown <= 0 && 
+				spike.level >= 3 && spike.currentSlobber >= 2) {
+			spike.currentSlobber -= 2;
 			if(spike.direction == 0) {
 				spike.shoot = spike.shootR;
 			}
@@ -516,7 +528,9 @@ public class PlatformState extends BasicGameState {
 			spike.cooldown = 2000;
 		}
 		
-		if(input.isKeyPressed(DogWarriors.CONTROLS_SHIELD) && spike.cooldown <= 0 && spike.level >= 4) {
+		if(input.isKeyPressed(DogWarriors.CONTROLS_SHIELD) && spike.cooldown <= 0 && 
+				spike.level >= 4 && spike.currentSlobber >= 4) {
+			spike.currentSlobber -= 4;
 			shield.exists = true;
 			//play sound
 			spike.cooldown = 1500;

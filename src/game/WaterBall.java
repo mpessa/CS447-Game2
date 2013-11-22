@@ -15,11 +15,8 @@ import jig.Vector;
 public class WaterBall extends Entity {
 
 	public static final Color defaultColor = Color.black;
-<<<<<<< HEAD
-	public static final float defaultRadius = 37.5f;
-=======
 	public static final float defaultRadius = 10f;
->>>>>>> refs/heads/issue5
+
 	public static final int numSides = 30;
 	
 	public static float radius = defaultRadius;
