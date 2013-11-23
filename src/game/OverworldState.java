@@ -1,5 +1,10 @@
 package game;
 
+
+
+import java.util.ArrayList;
+import java.util.Iterator;
+
 import jig.ResourceManager;
 import jig.Vector;
 
@@ -21,6 +26,7 @@ public class OverworldState extends BasicGameState {
 	GameContainer container; // gameContainer owned by the game
 	
 	public WorldDog dog; // player character sprite
+	public ArrayList<WorldCat> cat;
 	private Image worldMap; // a world map
 	
 	public final float tileWidth = 32;
@@ -29,6 +35,7 @@ public class OverworldState extends BasicGameState {
 	public final float worldHeight = 30;
 	public float viewWidth; // size of viewport in world tiles
 	public float viewHeight;
+	//private static ArrayList<WorldCat> cats;
 	
 	private float charSpawnX = 15*tileWidth; // spawn point of character in world coordinates (tiles)
 	private float charSpawnY = 11*tileWidth;
@@ -37,7 +44,6 @@ public class OverworldState extends BasicGameState {
 	private float shiftY = DogWarriors.ScreenHeight/2.0f;
 	private float charX; // current location of character in world coordinates (tiles)
 	private float charY;
-	private float changePos;
 	
 	public OverworldState(GameContainer container, StateBasedGame game) {
 		// THIS SPACE INTENTIONALLY LEFT BLANK
@@ -66,6 +72,8 @@ public class OverworldState extends BasicGameState {
 		this.charY = this.charSpawnY;
 		
 		this.dog = new WorldDog(shiftX + t/2, shiftY + t/2, 0.0f, 0.0f);
+		cat = new ArrayList<WorldCat>(1);
+		cat.add(new WorldCat(0, 0, 0.0f, 0.0f));
 		this.worldMap = new Image("game/resource/demo.png");
 		//this.worldMap = new TiledMap(DogWarriors.worldLevels[0], DogWarriors.rDir);
 	}
@@ -84,6 +92,12 @@ public class OverworldState extends BasicGameState {
 		dog.setX(shiftX);
 		dog.setY(shiftY);
 		dog.render(g);
+		for(Iterator<WorldCat> i = cat.iterator(); i.hasNext();){
+			WorldCat tempCat = i.next();
+			tempCat.render(charX - shiftX, charY - shiftY, g); 
+			
+		}
+		
 	}
 
 	@Override
@@ -91,7 +105,10 @@ public class OverworldState extends BasicGameState {
 			throws SlickException {
 		Input input = container.getInput();
 		processKeyInput(input);
-		changePos = .1f*delta;
+		for(Iterator<WorldCat> i = cat.iterator(); i.hasNext();){
+			WorldCat tempCat = i.next();
+			tempCat.update(delta, charX - shiftX, charY - shiftY);
+		}
 	}
 
 	@Override
