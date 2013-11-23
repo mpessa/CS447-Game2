@@ -1,9 +1,11 @@
 package game;
 
 import jig.ResourceManager;
+import jig.Vector;
 
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
@@ -19,22 +21,23 @@ public class OverworldState extends BasicGameState {
 	GameContainer container; // gameContainer owned by the game
 	
 	public WorldDog dog; // player character sprite
-	private TiledMap worldMap; // a world map
+	private Image worldMap; // a world map
 	
-	public final int tileWidth = 32;
+	public final float tileWidth = 32;
 	
-	public final int worldWidth = 30; // size of world in tiles
-	public final int worldHeight = 30;
-	public int viewWidth; // size of viewport in world tiles
-	public int viewHeight;
+	public final float worldWidth = 30; // size of world in tiles
+	public final float worldHeight = 30;
+	public float viewWidth; // size of viewport in world tiles
+	public float viewHeight;
 	
-	private int charSpawnX = 15; // spawn point of character in world coordinates (tiles)
-	private int charSpawnY = 11;
+	private float charSpawnX = 15*tileWidth; // spawn point of character in world coordinates (tiles)
+	private float charSpawnY = 11*tileWidth;
 	
-	private int shiftX; // offset from top left of screen to character (pixels)
-	private int shiftY;
-	private int charX; // current location of character in world coordinates (tiles)
-	private int charY;
+	private float shiftX = DogWarriors.ScreenWidth/2.0f; // offset from top left of screen to character (pixels)
+	private float shiftY = DogWarriors.ScreenHeight/2.0f;
+	private float charX; // current location of character in world coordinates (tiles)
+	private float charY;
+	private float changePos;
 	
 	public OverworldState(GameContainer container, StateBasedGame game) {
 		// THIS SPACE INTENTIONALLY LEFT BLANK
@@ -63,15 +66,23 @@ public class OverworldState extends BasicGameState {
 		this.charY = this.charSpawnY;
 		
 		this.dog = new WorldDog(shiftX + t/2, shiftY + t/2, 0.0f, 0.0f);
-		this.worldMap = new TiledMap(DogWarriors.worldLevels[0], DogWarriors.rDir);
+		this.worldMap = new Image("game/resource/demo.png");
+		//this.worldMap = new TiledMap(DogWarriors.worldLevels[0], DogWarriors.rDir);
 	}
 
 	@Override
 	public void render(GameContainer container, StateBasedGame game, Graphics g)
 			throws SlickException {
-		int screenX = charX - shiftX/tileWidth;
-		int screenY = charY - shiftY/tileWidth;
-		worldMap.render(0, 0, screenX, screenY, viewWidth, viewHeight);
+		//the start coordinates of where the world gets drawn in relation to the screen.
+		float screenX = charX - shiftX;
+		float screenY = charY - shiftY;
+		
+		//worldMap.render(0, 0, (int)screenX, (int)screenY, (int)viewWidth, (int)viewHeight);
+		//where the actual 0,0 coordinates are for the world.
+		worldMap.draw(-screenX, -screenY);//, DogWarriors.ScreenWidth, DogWarriors.ScreenHeight);
+		//Sets the the dog in the center of the visible window.
+		dog.setX(shiftX);
+		dog.setY(shiftY);
 		dog.render(g);
 	}
 
@@ -80,6 +91,7 @@ public class OverworldState extends BasicGameState {
 			throws SlickException {
 		Input input = container.getInput();
 		processKeyInput(input);
+		changePos = .1f*delta;
 	}
 
 	@Override
@@ -113,30 +125,76 @@ public class OverworldState extends BasicGameState {
 	 */
 	private void processKeyInput(Input input) {
 		
-		int objectLayer = worldMap.getLayerIndex("object");
+		//int objectLayer = worldMap.getLayerIndex("object");
 		
-		if (input.isKeyPressed(DogWarriors.CONTROLS_RIGHT)) {
-			if (charX < 29 && worldMap.getTileId(charX + 1, charY, objectLayer) == 0) {
+		if (input.isKeyDown(DogWarriors.CONTROLS_RIGHT)) {
+			if (charX < worldWidth*tileWidth - dog.getCoarseGrainedWidth()/2){// && worldMap.getTileId((int)(charX/tileWidth) + 1, (int)(charY/tileWidth), objectLayer) == 0) {
+				if(worldWidth*32 <= (charX - shiftX) + DogWarriors.ScreenWidth){
+					shiftX += 1;
+				}
+				if(shiftX < DogWarriors.ScreenWidth/2){
+					shiftX +=1;
+				}
 				charX += 1;
+				//shiftX++;
+				//if(shiftX - DogWarriors.ScreenWidth/2.0 > 3*tileWidth)
+					//shiftX -= 3*tileWidth;
+			//}
 			}
 		}
 		
-		if (input.isKeyPressed(DogWarriors.CONTROLS_LEFT)) {
-			if (charX > 0 && worldMap.getTileId(charX - 1, charY, objectLayer) == 0) {
+		if (input.isKeyDown(DogWarriors.CONTROLS_LEFT)) {
+			if (charX > 0 + dog.getCoarseGrainedWidth()/2 ){
+				// && worldMap.getTileId((int)(charX/tileWidth) - 1, (int)(charY/tileWidth), objectLayer) == 0) {
+				if(0 >= (charX - shiftX)){
+					shiftX -=1;
+				}
+				if(shiftX > DogWarriors.ScreenWidth/2){
+					shiftX -= 1;
+				}
 				charX -= 1;
 			}
+		
+				//shiftX--;
+				//if(shiftX - DogWarriors.ScreenWidth/2.0 < -3*tileWidth)
+					//shiftX += 3*tileWidth;
+			//}
 		}
 		
-		if (input.isKeyPressed(DogWarriors.CONTROLS_DOWN)) {
-			if (charY < 29 && worldMap.getTileId(charX, charY + 1, objectLayer) == 0) {
+		if (input.isKeyDown(DogWarriors.CONTROLS_DOWN)) {
+			if (charY < worldHeight*tileWidth - dog.getCoarseGrainedWidth()/2){// && worldMap.getTileId((int)(charX/tileWidth), (int)(charY/tileWidth) + 1, objectLayer) == 0) {
+				//check to ensure that the screen does not fall of the face of the world. 
+				if(worldHeight*32 <= (charY - shiftY) + DogWarriors.ScreenHeight){
+					shiftY += 1;
+				}
+				//Puts the character back into the center of the screen.
+				if(shiftY < DogWarriors.ScreenHeight/2){
+					shiftY +=1;
+				}
 				charY += 1;
+			
+			
+				//shiftY++;
+				//if(shiftY - DogWarriors.ScreenHeight/2.0 > 3*tileWidth)
+					//shiftY -= 3*tileWidth;
+			//}
 			}
 		}
 		
-		if (input.isKeyPressed(DogWarriors.CONTROLS_UP)) {
-			if (charY > 0 && worldMap.getTileId(charX, charY - 1, objectLayer) == 0) {
+		if (input.isKeyDown(DogWarriors.CONTROLS_UP)) {
+			if (charY > 0 + dog.getCoarseGrainedWidth()/2){// && worldMap.getTileId((int)(charX/tileWidth), (int)(charY/tileWidth) - 1, objectLayer) == 0) {
+				if(0 >= (charY - shiftY)){
+					shiftY -= 1;
+				}
+				if(shiftY > DogWarriors.ScreenHeight/2){
+					shiftY -= 1;
+				}
 				charY -= 1;
 			}
+				//shiftY--;
+				//if(shiftY - DogWarriors.ScreenHeight/2.0 < -3*tileWidth)
+					//shiftY += 3*tileWidth;
+			//}
 		}
 		
 		if (input.isKeyPressed(DogWarriors.CONTROLS_CHEAT_1)) { // instantly enter platform mode
@@ -151,4 +209,14 @@ public class OverworldState extends BasicGameState {
 			game.enterState(DogWarriors.STATES_STARTUP, new EmptyTransition(), new HorizontalSplitTransition());
 		}
 	}
+	private WorldDog getWorldDog() {
+		// TODO Auto-generated method stub
+		return dog;
+	}
+
+	//Add a certain amount of distance on each updated to add to players current position
+	private float LERP(float start, float finish, float transition){
+		return start + (finish - start) * transition;
+	}
+
 }
