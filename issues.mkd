@@ -1,6 +1,5 @@
 ## Open Issues ##
 [1] Create algorithm for placing tiles on world map
-[2] Create world map
 [6] Create collisions for world map
 [7] Implement leveling system
 [8] Create boss entity
@@ -11,6 +10,7 @@
 
 ## Closed Issues ##
 
+[2] Create world map
 [3] Create platform world
 [4] Create dog and cat entities
 [5] Create physics for platform world
