@@ -86,6 +86,31 @@ public class DogWarriors extends StateBasedGame {
 		rDir + "wood_tileset_3.png"
 	};
 	
+	public static final String[] wallImages = {
+		rDir + "wall_vines0.png",
+		rDir + "wall_vines1.png",
+		rDir + "wall_vines2.png",
+		rDir + "wall_vines3.png",
+		rDir + "wall_vines4.png",
+		rDir + "wall_vines5.png",
+		rDir + "wall_vines6.png",
+	};
+	
+	public static final String[] grassImages = {
+		rDir + "grass_0.png",
+		rDir + "grass_1.png",
+		rDir + "grass_2.png",
+		rDir + "grass_3.png",
+		rDir + "grass_4.png",
+		rDir + "grass_5.png",
+		rDir + "grass_6.png",
+		rDir + "grass_7.png",
+		rDir + "grass_8.png",
+		rDir + "grass_9.png",
+		rDir + "grass_10.png",
+		rDir + "grass_11.png",
+	};
+	
 	// Sounds
 	// There are no sounds yet. :(
 	
