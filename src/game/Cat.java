@@ -22,8 +22,13 @@ public class Cat extends Entity{
 	public boolean dead; // True if this Cat is dead
 	public boolean done; // True if this Cat is dead and has hit the ground
 	public boolean canFire, canKick, canShield; // Abilities
+	public boolean chase; // True if this Cat is chasing the Dog
+	public boolean inAir; // True if this Cat is kicking at the Dog
 	public int fTime, kTime, sTime; // Ability timers
-	public int time; // ?
+	public int cooldown; // Time between ability uses
+	public int time; // General timer for Cat AI
+	public int platTime; // Amount of time on a platform
+	public int drop; // Timer to allow Cat to drop through platforms
 	public int hitTime; // Timer between possible hits
 	public int level; // Higher level = More powerful Cat
 	public int maxHP, currentHP; // Hit points of Cat
@@ -55,6 +60,10 @@ public class Cat extends Entity{
 		this.onP1 = false; // Does the Cat need to know which platform he's on?
 		this.onP2 = false; //
 		// this.onPlatform = false
+		this.chase = false;
+		this.inAir = false;
+		this.platTime = 0;
+		this.drop = 0;
 		this.normal = new ConvexPolygon(15f, 42f);
 		
 		this.addShape(normal, new Vector(-8f, -3f), null, Color.black);
@@ -62,7 +71,6 @@ public class Cat extends Entity{
 	}
 	
 	public void kill() {
-		//this.speed = new Vector(0.0f, 0.0f);
 		if(this.onGround || this.onP1 || this.onP2){
 			this.setVelocity(new Vector(0f, 0f));
 			this.removeShape(normal);
@@ -84,14 +92,30 @@ public class Cat extends Entity{
 		hitTime -= delta;
 		kTime -= delta;
 		sTime -= delta;
-		if(change) {
+		platTime -= delta;
+		drop -= delta;
+		cooldown -= delta;
+		if(change && this.level != 4) {
 			change = false;
-			if(this.speed.getX() > 0) {
+			if(this.speed.getX() > 0){
 				walk = walkR;
 			}
-			else if(this.speed.getX() < 0) {
+			else if(this.speed.getX() < 0){
 				walk = walkL;
 			}
+		}
+		if(change && this.level == 4){
+			change = false;
+			if(this.speed.getX() > 0){
+				walk = walkL;
+			}
+			if(this.speed.getX() <0){
+				walk = walkR;
+			}
+		}
+		if(kTime <= 0 && inAir){
+			inAir = false;
+			setVelocity(new Vector(this.speed.getX() / 2, this.speed.getY()));
 		}
 		translate(speed.scale(delta));
 	}

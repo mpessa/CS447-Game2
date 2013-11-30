@@ -22,7 +22,7 @@ public class FireShield extends Entity{
 	public FireShield(final float x, final float y) {
 		super(x, y);
 		
-		this.exists = true;
+		this.exists = false;
 		
 		this.addImage(ResourceManager.getImage(DogWarriors.battleImages[2]));
 		this.addShape(new ConvexPolygon(FireShield.radius, FireShield.numSides),

@@ -60,7 +60,7 @@ public class Dog extends Entity {
 		this.normal = new ConvexPolygon(17f, 42f);
 		this.inAir = new ConvexPolygon(17, 30);
 		this.leg = new ConvexPolygon(40f, 8f);
-		
+		this.addShape(new ConvexPolygon(1, 30), new Vector(0f, 0f), Color.black, Color.black);
 		this.addShape(inAir, new Vector(0f, 5f), null, Color.black);
 		this.bestowAbilities();
 	}
