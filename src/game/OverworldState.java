@@ -4,6 +4,7 @@ package game;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.Random;
 
 import jig.Collision;
 import jig.Entity;
@@ -46,6 +47,15 @@ public class OverworldState extends BasicGameState {
 	private final int mapWidth = TownMap.TILESIZE * TownMap.WIDTH;
 	private final int mapHeight = TownMap.TILESIZE * TownMap.HEIGHT;
 	
+;
+	public final float worldWidth = 30; // size of world in tiles
+	public final float worldHeight = 30;
+	public float viewWidth; // size of viewport in world tiles
+	public float viewHeight;
+	public float worldX =30;
+	public float worldY = 30;
+	public int changePath = 2000;
+	//private static ArrayList<WorldCat> cats;
 	// screen dimensions
 	private float screenWidth;
 	private float screenHeight;
@@ -58,6 +68,7 @@ public class OverworldState extends BasicGameState {
 	private float offsetX;
 	private float offsetY;
 	
+	
 	// Objects in the current world
 	private WorldDog dog; // player character sprite
 	private ArrayList<WorldCat> cats;
@@ -67,13 +78,24 @@ public class OverworldState extends BasicGameState {
 	//private ArrayList<Fence> fences;
 	//private ArrayList<Powerup> powerups;
 	//private ArrayList<Shrub> shrubs; // drawn above Spike
+	Random rand = new Random();
 	
 	public OverworldState(GameContainer container, StateBasedGame game) {
 		// THIS SPACE INTENTIONALLY LEFT BLANK
 	}
 
 	@Override
-	public void init(GameContainer container, StateBasedGame game)
+	public void init(GameContainer container, StateBasedGame ga
+	// Objects in the current world
+	private WorldDog dog; // player character sprite
+	private ArrayList<WorldCat> cats;
+	private ArrayList<GrassTile> grassTiles;
+	private ArrayList<Building> buildings; // Rectangular entities blocking dog movement
+	private ArrayList<Wall> walls;
+	//private ArrayList<Fence> fences;
+	//private ArrayList<Powerup> powerups;
+	//private ArrayList<Shrub> shrubs; // drawn above Spike
+me)
 			throws SlickException {
 		System.out.println("Initializing OVERWORLD state...");
 		
@@ -91,6 +113,13 @@ public class OverworldState extends BasicGameState {
 		this.game = (DogWarriors) game;
 		this.container = container;
 		
+	
+		this.dog = new WorldDog(shiftX + t/2, shiftY + t/2, 0.0f, 0.0f);
+		cat = new ArrayList<WorldCat>(2);
+		cat.add(new WorldCat(0, 0, 0.0f, 0.0f));
+		cat.add(new WorldCat(30, 30, 0.0f, 0.0f));
+		this.worldMap = new Image("game/resource/demo.png");
+		//this.worldMap = new TiledMap(DogWarriors.worldLevels[0], DogWarriors.rDir);
 		this.screenWidth = container.getWidth();
 		this.screenHeight = container.getHeight();
 		this.screenHalfWidth = screenWidth / 2;
@@ -107,6 +136,27 @@ public class OverworldState extends BasicGameState {
 		
 		TownMap m = new TownMap(4, 8, 12, 16, false, 0, 0, 0);
 		mapList.add(m);
+		this.screenWidth = container.getWidth();
+		this.screenHeight = container.getHeight();
+		this.screenHalfWidth = screenWidth / 2;
+		this.screenHalfHeight = screenHeight / 2;
+		
+		this.mapList = new ArrayList<TownMap>();
+		this.cats = new ArrayList<WorldCat>();
+		this.grassTiles = new ArrayList<GrassTile>();
+		this.buildings = new ArrayList<Building>();
+		this.walls = new ArrayList<Wall>();
+		//this.fences = new ArrayList<Fence>();
+		//this.powerups = new ArrayList<Powerups>();
+		//this.shrubs = new ArrayList<Shrub>();
+		
+		TownMap m = new TownMap(4, 8, 12, 16, false, 0, 0, 0);
+		mapList.add(m);
+		this.numMaps = 1;
+		
+		this.changeLevel(0, 0);
+		
+
 		this.numMaps = 1;
 		
 		this.changeLevel(0, 0);
@@ -134,6 +184,8 @@ public class OverworldState extends BasicGameState {
 		
 		dog.translate(-1*offsetX, -1*offsetY);
 		dog.render(g);
+		
+		//render the cat only if it is currently on the screen
 		dog.translate(offsetX, offsetY);
 		
 		for (Wall w : this.walls) {
@@ -154,6 +206,17 @@ public class OverworldState extends BasicGameState {
 			throws SlickException {
 		Input input = container.getInput();
 		processKeyInput(input);
+		//changePath -= delta;
+		
+		for(Iterator<WorldCat> i = cat.iterator(); i.hasNext();){
+			WorldCat tempCat = i.next();
+			//tempCat.setVelocity(new Vector(0.01f,0.01f));
+			//tempCat.update(delta, charX - shiftX, charY - shiftY);
+			
+			//if(worldX <= rand.nextInt(10*32) + worldX && worldX <= worldWidth*tileWidth - tempCat.getCoarseGrainedWidth()/2){
+				tempCat.update(delta, charX - shiftX, charY - shiftY);
+			//}
+			
 		dog.update(delta);
 		
 		numCDs = 0;
@@ -169,7 +232,17 @@ public class OverworldState extends BasicGameState {
 					dog.setVelocity(new Vector(0.0f, dog.getVelocity().getY()));
 					float dx = dog.getCoarseGrainedMaxX() - w.getCoarseGrainedMinX();
 					dog.translate(new Vector(-1.0f*dx, 0.0f));
-				} else if (p.getX() > 0) { // move dog east
+				
+		dog.translate(offsetX, offsetY);
+		
+		for (Wall w : this.walls) {
+			if (w.isOnscreen(screen)) {
+				numRenders++;
+				w.translate(-1*offsetX, -1*offsetY);
+				w.render(g);
+				w.translate(offsetX, offsetY);
+			}
+} else if (p.getX() > 0) { // move dog east
 					dog.setVelocity(new Vector(0.0f, dog.getVelocity().getY()));
 					float dx = w.getCoarseGrainedMaxX() - dog.getCoarseGrainedMinX();
 					dog.translate(new Vector(dx, 0.0f));
@@ -185,6 +258,7 @@ public class OverworldState extends BasicGameState {
 				}
 			}
 		}
+		
 	}
 
 	@Override
@@ -264,6 +338,89 @@ public class OverworldState extends BasicGameState {
 	}
 	
 	/**
+	 * Switches to the specified level in the mapList. Populates the
+	 * new level with its objects, and places the dog in its appropriate
+	 * position (differs depending on how the level is entered)
+	 * 
+	 * @param level - index in mapList to load
+	 * @param entryDir - 0 if this is the first call (we need to generate a dog), 1-4 = N, E, S, W
+	 */
+	private void changeLevel(int level, int entryDir) {
+		// save information from previous level
+		int outgoing = mapIndex;
+		// switch to the new level
+		mapIndex = level;
+		currentMap = mapList.get(mapIndex);
+		// generate objects
+		for (int i = 0; i < TownMap.HEIGHT; i++) {
+			for (int j = 0; j < TownMap.WIDTH; j++) {
+				Vector p = new Vector(j, i).scale(TownMap.TILESIZE);
+				int 
+		dog.update(delta);
+
+		
+		numCDs = 0;
+		
+		
+		// dog vs. wall collisions
+		for (Wall w : walls) {
+			if (!(dog.isNear(w))) continue; // ignore walls that are too far away to collide.
+			numCDs ++;
+			Collision c = dog.collides(w);
+			if (c != null) {
+				Vector p = c.getMinPenetration();
+				if (p.getX() < 0) { // move dog west
+					dog.setVelocity(new Vector(0.0f, dog.getVelocity().getY()));
+					float dx = dog.getCoarseGrainedMaxX() - w.getCoarseGrainedMinX();
+					dog.translate(new Vector(-1.0f*dx, 0.0f));
+				} else if (p.getX() > 0) { // move dog east
+					dog.setVelocity(new Vector(0.0f, dog.getVelocity().getY()));
+					float dx = w.getCoarseGrainedMaxX() - dog.getCoarseGrainedMinX();
+					dog.translate(new Vector(dx, 0.0f));
+				}
+				if (p.getY() < 0) { // move dog north
+					dog.setVelocity(new Vector(dog.getVelocity().getX(), 0.0f));
+					float dy = dog.getCoarseGrainedMaxY() - w.getCoarseGrainedMinY();
+					dog.translate(new Vector(0.0f, -1.0f*dy));
+				} else if (p.getY() > 0) { // move dog south
+					dog.setVelocity(new Vector(dog.getVelocity().getX(), 0.0f));
+					float dy = w.getCoarseGrainedMaxY() - dog.getCoarseGrainedMinY();
+					dog.translate(new Vector(0.0f, dy));
+				}
+			}
+img = 0;
+				switch (currentMap.tiledata[i][j]) {
+				case (TownMap.GRASS):
+					img = (int) (Math.random()*DogWarriors.grassImages.length);
+					grassTiles.add(new GrassTile(p, img));
+					break;
+				case (TownMap.WALL):
+					img = (int) (Math.random()*DogWarriors.wallImages.length);
+					walls.add(new Wall(p, img));
+					break;
+				}
+			}
+
+		// replace or generate the dog
+		switch (entryDir) {
+		case (1): // dog is entering the map from the North
+			dog.setY((float) (1.5 * TownMap.TILESIZE)); 
+			break;
+		case (2): // dog is entering the map from the East
+			dog.setX((float) (mapWidth - 1.5 * TownMap.TILESIZE));
+			break;
+		case (3): // dog is entering the map from the South
+			dog.setY((float) (mapHeight - 1.5 * TownMap.TILESIZE));
+			break;
+		case (4): // dog is entering the map from the West
+			dog.setX((float) (1.5 * TownMap.TILESIZE));
+			break;
+		default: // dog is respawning at the map's spawn point
+			this.dog = new WorldDog(currentMap.dogSpawn.scale(TownMap.TILESIZE));
+		}
+	}
+	
+	/**
 	 * Do something based on what keys have been pressed.
 	 */
 	private void processKeyInput(Input input) {
@@ -296,6 +453,8 @@ public class OverworldState extends BasicGameState {
 		}
 	}
 	
+//	
+	
 //	private WorldDog getWorldDog() {
 //		// TODO Auto-generated method stub
 //		return dog;
@@ -305,5 +464,8 @@ public class OverworldState extends BasicGameState {
 //	private float LERP(float start, float finish, float transition){
 //		return start + (finish - start) * transition;
 //	}
+	public int getWorldValue(){
+		return rand.nextInt(10*32);
+	}
 
 }
