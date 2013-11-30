@@ -467,7 +467,6 @@ public class PlatformState extends BasicGameState {
 			
 			//Level 4 AI
 			if(ninja.level == 4 && !ninja.dead) {
-				//If Dog 
 				if(fShield.exists){
 					fShield.setPosition(ninja.getX(), ninja.getY() - 10);
 				}
@@ -490,16 +489,22 @@ public class PlatformState extends BasicGameState {
 						if(Math.abs(ninja.getX() - spike.getX()) >= 150){
 							System.out.println("greather than 150");
 							if((ninja.sTime <= 0 && ninja.getX() >= 25)){
-								System.out.println("x greater than 25");
+								System.out.println("x = " + ninja.getX());
 								ninja.setVelocity(new Vector(-0.2f, ninja.speed.getY()));
 								ninja.change = true;
 							}
-							else{
-								System.out.println("x less than 25");
+							else if(ninja.getX() <= 20 && ninja.time <= 0){
+								System.out.println("less than 25, moving back");
 								ninja.setVelocity(new Vector(0.2f, ninja.speed.getY()));
 								ninja.change = true;
+								ninja.time = 300;
 							}
-							ninja.chase = false;
+							else{
+								System.out.println("x less than 25");
+								ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
+								//ninja.change = true;
+							}
+							//ninja.chase = false;
 						}
 					}
 					else if(ninja.getX() - spike.getX() > 0){
@@ -510,7 +515,7 @@ public class PlatformState extends BasicGameState {
 							ninja.chase = false;
 						}
 						else{
-							ninja.setVelocity(new Vector(0f, 0f));
+							ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
 						}
 					}
 					
@@ -520,14 +525,17 @@ public class PlatformState extends BasicGameState {
 						ninja.drop = 300;
 					}
 				}
-					if((ninja.getX() + 3 <= p1.getCoarseGrainedMinX() || ninja.getCoarseGrainedMinX() >= p1.getCoarseGrainedMaxX())
-							&& !ninja.onGround && ninja.onP1){
-						ninja.onP1 = false;
-					}				
-					if((ninja.getX() + 3 <= p2.getCoarseGrainedMinX() || ninja.getCoarseGrainedMinX() >= p2.getCoarseGrainedMaxX())
-							&& !ninja.onGround && ninja.onP2){
-						ninja.onP2 = false;
-					}/*
+				else{
+					ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
+				}
+				if((ninja.getX() + 3 <= p1.getCoarseGrainedMinX() || ninja.getCoarseGrainedMinX() >= p1.getCoarseGrainedMaxX())
+						&& !ninja.onGround && ninja.onP1){
+					ninja.onP1 = false;
+				}				
+				if((ninja.getX() + 3 <= p2.getCoarseGrainedMinX() || ninja.getCoarseGrainedMinX() >= p2.getCoarseGrainedMaxX())
+						&& !ninja.onGround && ninja.onP2){
+					ninja.onP2 = false;
+				}/*
 					if(ninja.sTime <= 0 && ninja.speed.getX() == 0){
 						if(ninja.walk == ninja.walkR){
 							ninja.setVelocity(new Vector(-0.2f, ninja.speed.getY()));
@@ -536,52 +544,51 @@ public class PlatformState extends BasicGameState {
 							ninja.setVelocity(new Vector(0.2f, ninja.speed.getY()));
 						}
 					}*/
-					if(ninja.kTime <= 0 && ninja.inAir){
-						ninja.inAir = false;			
-					}
-					//Attack if close enough and no shield
-					if(Math.abs(ninja.getX() - spike.getX()) <= 150 && ninja.kTime <= 0 
-							&& ninja.cooldown <= 0 && !ninja.canShield){
-						System.out.println("Kick");
-						if(ninja.speed.getX() < 0)
-							ninja.kick = ninja.kickR;
-						if(ninja.speed.getX() > 0)
-							ninja.kick = ninja.kickL;
-							ninja.kTime = 450;
-							ninja.cooldown = 1500;
-							ninja.kick.restart();
-							ninja.inAir = true;
-							ninja.setVelocity(new Vector(ninja.speed.getX() * -2, 0f));
+				if(ninja.kTime <= 0 && ninja.inAir){
+					ninja.inAir = false;			
+				}
+				//Attack if close enough and no shield
+				if(Math.abs(ninja.getX() - spike.getX()) <= 150 && ninja.kTime <= 0 
+						&& ninja.cooldown <= 0 && !ninja.canShield){
+					System.out.println("Kick");
+					if(ninja.speed.getX() < 0)
+						ninja.kick = ninja.kickR;
+					if(ninja.speed.getX() > 0)
+						ninja.kick = ninja.kickL;
+						ninja.kTime = 450;
+						ninja.cooldown = 1500;
+						ninja.kick.restart();
+						ninja.inAir = true;
+						ninja.setVelocity(new Vector(ninja.speed.getX() * -2, 0f));
+				}
+				else if(Math.abs(ninja.getX() - spike.getX()) <= 150 &&
+						ninja.cooldown <= 0 && ninja.canShield){
+					//fShield = new FireShield(ninja.getX(), ninja.getY());
+					fShield.exists = true;
+					ninja.canShield = false;
+					ninja.cooldown = 1000;
+				}
+				//Attack from range
+			//	else if(Math.abs(ninja.getY() - spike.getY()) <= 100){
+				else if(ninja.cooldown <= 0 && (spike.getY() > ninja.getY() + 10 || spike.getY() < ninja.getY() - 10)){
+						System.out.println("Shoot");
+						if(ninja.speed.getX() < 0 || ninja.shoot == ninja.shootR){
+							ninja.shoot = ninja.shootR;
+							fBall = new Fireball(ninja.getX(), ninja.getY() - 10, 0.3f, 0f, 0);
 						}
-					else if(Math.abs(ninja.getX() - spike.getX()) <= 150 &&
-							ninja.cooldown <= 0 && ninja.canShield){
-						//fShield = new FireShield(ninja.getX(), ninja.getY());
-						fShield.exists = true;
-						ninja.canShield = false;
-						ninja.cooldown = 1000;
-					}
-					//Attack from range
-					else if(Math.abs(ninja.getY() - spike.getY()) <= 100){
-						if(ninja.cooldown <= 0 && (spike.getY() > ninja.getY() + 10 || spike.getY() < ninja.getY() - 10)){
-							System.out.println("Shoot");
-							if(ninja.speed.getX() < 0 || ninja.shoot == ninja.shootR){
-								ninja.shoot = ninja.shootR;
-								fBall = new Fireball(ninja.getX(), ninja.getY() - 10, 0.3f, 0f, 0);
-							}
-							if(ninja.speed.getX() > 0 || ninja.shoot == ninja.shootL){
-								ninja.shoot = ninja.shootL;
-								fBall = new Fireball(ninja.getX(), ninja.getY() - 10, -0.3f, 0f, 1);
-							}
-							fire.add(fBall);
-							ninja.sTime = 450;
-							ninja.cooldown = 1500;
-							ninja.shoot.restart();
-							ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
-							
+						if(ninja.speed.getX() > 0 || ninja.shoot == ninja.shootL){
+							ninja.shoot = ninja.shootL;
+							fBall = new Fireball(ninja.getX(), ninja.getY() - 10, -0.3f, 0f, 1);
+						}
+						fire.add(fBall);
+						ninja.sTime = 450;
+						ninja.cooldown = 1500;
+						ninja.shoot.restart();
+						ninja.setVelocity(new Vector(0f, ninja.speed.getY()));	
 						}
 					}
 				}
-			}
+		//	}
 		//}
 		
 		//Cat and dog collisions
