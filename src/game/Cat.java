@@ -33,6 +33,7 @@ public class Cat extends Entity{
 	public int level; // Higher level = More powerful Cat
 	public int maxHP, currentHP; // Hit points of Cat
 	public int attPwr; //Amount of damage that the Cat deals
+	public int exp; // Amount of experience earned for defeating this Cat
 	
 	public Vector speed; // Speed of this Cat
 	public Shape normal; // Fine grained bounding box created for cat
@@ -136,6 +137,7 @@ public class Cat extends Entity{
 			this.walkingL = new SpriteSheet(ResourceManager.getImage(DogWarriors.catImages[22]), 38, 45);
 			this.dyingR = new SpriteSheet(ResourceManager.getImage(DogWarriors.catImages[4]), 38, 45);
 			this.dyingL = new SpriteSheet(ResourceManager.getImage(DogWarriors.catImages[0]), 38, 45);
+			this.exp = 25;
 			break;
 		case(2):
 			this.jumping = new SpriteSheet(ResourceManager.getImage(DogWarriors.catImages[9]), 38, 45);
@@ -146,6 +148,7 @@ public class Cat extends Entity{
 			this.dyingR = new SpriteSheet(ResourceManager.getImage(DogWarriors.catImages[5]), 38, 45);
 			this.dyingL = new SpriteSheet(ResourceManager.getImage(DogWarriors.catImages[1]), 38, 45);
 			this.canKick = true;
+			this.exp = 50;
 			break;
 		case(3):
 			this.jumping = new SpriteSheet(ResourceManager.getImage(DogWarriors.catImages[10]), 38, 45);
@@ -159,6 +162,7 @@ public class Cat extends Entity{
 			this.dyingL = new SpriteSheet(ResourceManager.getImage(DogWarriors.catImages[2]), 38, 45);
 			this.canKick = true;
 			this.canFire = true;
+			this.exp = 100;
 			break;
 		default: // maximum level cat!
 			this.jumping = new SpriteSheet(ResourceManager.getImage(DogWarriors.catImages[11]), 38, 45);
@@ -173,6 +177,7 @@ public class Cat extends Entity{
 			this.canKick = true;
 			this.canFire = true;
 			this.canShield = true;
+			this.exp = 150;
 		}
 		
 		this.walkR = new Animation(walkingR, 150);

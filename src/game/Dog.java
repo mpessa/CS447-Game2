@@ -29,6 +29,8 @@ public class Dog extends Entity {
 	public int maxSlobber, currentSlobber; // Amount of slobber remaining, used to power special abilities
 	public int attPwr, spPwr; // Damage dealt by this dog to enemy Cats.
 	public int direction; // Indicates which direction Dog is currently facing
+	public int currentExp; // Amount of experience earned so far
+	public int nextLevel; // Amount of experience required for the next level
 
 	public Vector speed; // Speed of this Dog
 	public Shape normal, inAir, leg; // Collision boundaries
@@ -39,7 +41,9 @@ public class Dog extends Entity {
 		super(x, y);
 		this.speed = new Vector(0f, 0f);
 		this.direction = 1;
-		this.level = 4;
+		this.level = 1;
+		this.currentExp = 0;
+		this.nextLevel = 250;
 		this.maxHP = 100;
 		this.currentHP = maxHP;
 		this.maxSlobber = 10;
@@ -118,6 +122,14 @@ public class Dog extends Entity {
 	
 	public Vector getVelocity() {
 		return speed;
+	}
+	
+	public void levelUp(){
+		if(this.currentExp >= this.nextLevel){
+			this.level++;
+			this.currentExp -= this.nextLevel;
+			this.nextLevel *= 2.5;
+		}
 	}
 	
 	public void update(int delta) {

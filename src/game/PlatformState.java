@@ -27,7 +27,9 @@ public class PlatformState extends BasicGameState {
 	
 	private int screenWidth, screenHeight;
 	private int screenCenterX, screenCenterY;
-	private int level, randomJump;
+	private int level, expEarned, deadCats;
+	
+	private boolean levelOver;
 	
 	private Random random;
 	
@@ -73,6 +75,8 @@ public class PlatformState extends BasicGameState {
 		this.screenCenterX = screenWidth / 2;
 		this.screenCenterY = screenHeight / 2;
 		
+		this.levelOver = false;
+		
 		this.cats = new ArrayList<Cat>(5);
 		this.fire = new ArrayList<Fireball>(5);
 		this.ball = new WaterBall(screenCenterX, screenCenterY);
@@ -82,6 +86,8 @@ public class PlatformState extends BasicGameState {
 		this.spike = new Dog(screenCenterX, screenHeight - 70);
 		
 		level = randomLevel();
+		this.expEarned = 0;
+		this.deadCats = 0;
 		this.chooseLevel(level);
 		this.addCats();
 
@@ -473,7 +479,6 @@ public class PlatformState extends BasicGameState {
 				if(ninja.cooldown <= 0 && (spike.getY() < ninja.getY() + 20 || spike.getY() > ninja.getY() - 20)){
 					if((!ninja.canShield && Math.abs(ninja.getX() - spike.getX()) >= 150) ||
 							(ninja.canShield && Math.abs(ninja.getX() - spike.getX()) >= 200)){
-						System.out.println("Shoot");
 						if(ninja.speed.getX() < 0 || ninja.walk == ninja.walkR){
 							ninja.shoot = ninja.shootR;
 							fBall = new Fireball(ninja.getX(), ninja.getY() - 10, 0.3f, 0f, 0);
@@ -501,7 +506,6 @@ public class PlatformState extends BasicGameState {
 					//Attack if close enough and no shield
 					if(Math.abs(ninja.getX() - spike.getX()) <= 150 && ninja.kTime <= 0 
 							&& ninja.cooldown <= 0 && !ninja.canShield && !fShield.exists){
-						System.out.println("Kick");
 						if(ninja.speed.getX() < 0)
 							ninja.kick = ninja.kickR;
 						if(ninja.speed.getX() > 0)
@@ -524,55 +528,42 @@ public class PlatformState extends BasicGameState {
 						ninja.cooldown = 1000;
 					}
 					else if(Math.abs(ninja.getX() - spike.getX()) <= 150 && !ninja.chase){
-						System.out.println("less than 150");
 						ninja.setVelocity(new Vector(-1 * ninja.speed.getX(), ninja.speed.getX()));
 						ninja.chase = true;
 					}
 					else if(ninja.getX() - spike.getX() < 0){
-						System.out.println("left of spike");
 						if(Math.abs(ninja.getX() - spike.getX()) >= 150 && ninja.sTime <= 0
 								&& ninja.kTime <= 0){
-							System.out.println("greather than 150");
 							if((ninja.sTime <= 0 && ninja.getX() >= 25)){
 								System.out.println("x = " + ninja.getX());
 								ninja.setVelocity(new Vector(-0.2f, ninja.speed.getY()));
 								ninja.change = true;
 							}
 							else if(ninja.getX() <= 20 && ninja.time <= 0){
-								System.out.println("less than 25, moving back");
 								ninja.setVelocity(new Vector(0.2f, ninja.speed.getY()));
 								ninja.change = true;
 								ninja.time = 300;
 							}
 							else{
-								System.out.println("x less than 25");
 								ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
-								//ninja.change = true;
 							}
-							//ninja.chase = false;
 						}
 					}
 					else if(ninja.getX() - spike.getX() > 0){
 						if(Math.abs(ninja.getX() - spike.getX()) >= 150 && ninja.sTime <= 0
 								&& ninja.kTime <= 0){
-							System.out.println("greather than 150");
 							if((ninja.sTime <= 0 && ninja.getX() <= screenWidth - 25)){
-								System.out.println("x = " + ninja.getX());
 								ninja.setVelocity(new Vector(0.2f, ninja.speed.getY()));
 								ninja.change = true;
 							}
 							else if(ninja.getX() <= 20 && ninja.time <= 0){
-								System.out.println("less than 25 from screenWidth, moving back");
 								ninja.setVelocity(new Vector(-0.2f, ninja.speed.getY()));
 								ninja.change = true;
 								ninja.time = 300;
 							}
 							else{
-								System.out.println("x less than 25");
 								ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
-								//ninja.change = true;
 							}
-							//ninja.chase = false;
 						}
 					}
 					
@@ -603,8 +594,6 @@ public class PlatformState extends BasicGameState {
 				}
 			}
 		}
-		//	}
-		//}
 		
 		//Cat and dog collisions
 		for(int i = 0; i < cats.size(); i++) {
@@ -619,6 +608,8 @@ public class PlatformState extends BasicGameState {
 				if(ninja.currentHP <= 0 && !ninja.dead){
 					ninja.time = 600;
 					ninja.dead = true;
+					expEarned += ninja.exp;
+					deadCats++;
 					if(ninja.speed.getX() <= 0){
 						ninja.die = ninja.dieL;
 					}
@@ -631,6 +622,8 @@ public class PlatformState extends BasicGameState {
 				if(ninja.currentHP <= 0 && !ninja.dead){
 					ninja.time = 600;
 					ninja.dead = true;
+					expEarned += ninja.exp;
+					deadCats++;
 				}
 				ninja.hitTime = 300;
 			}
@@ -654,6 +647,8 @@ public class PlatformState extends BasicGameState {
 				if(ninja.currentHP <= 0 && !ninja.dead){
 					ninja.time = 600;
 					ninja.dead = true;
+					expEarned += ninja.exp;
+					deadCats++;
 				}
 			}
 			if(shield.collides(ninja) != null && shield.exists){
@@ -664,6 +659,8 @@ public class PlatformState extends BasicGameState {
 				if(ninja.currentHP <= 0 && !ninja.dead){
 					ninja.time = 600;
 					ninja.dead = true;
+					expEarned += ninja.exp;
+					deadCats++;
 				}
 			}
 		}
@@ -767,6 +764,13 @@ public class PlatformState extends BasicGameState {
 			ball.update(delta);
 		}			
 		spike.update(delta);
+		if(cats.size() == deadCats && !levelOver){
+			spike.currentExp += expEarned;
+			levelOver = true;
+			System.out.println("Experience earned = " + expEarned);
+			spike.levelUp();
+			leave(container, game);
+		}
 	}
 
 	@Override
@@ -893,20 +897,59 @@ public class PlatformState extends BasicGameState {
 	}
 	
 	private void addCats() throws SlickException {
-		/*
-		ninja = new Cat(3 * screenWidth / 4, screenHeight - 70, 1);
-		ninja.setVelocity(new Vector(-0.2f, 0f));
-		cats.add(ninja);
-		ninja = new Cat(screenWidth / 4, screenHeight - 70, 2);
-		ninja.setVelocity(new Vector(0.2f, 0f));
-		cats.add(ninja);
-		ninja = new Cat(screenWidth / 3, screenHeight - 70, 3);
-		ninja.setVelocity(new Vector(-0.2f, 0f));
-		cats.add(ninja);*/
-		ninja = new Cat(screenWidth / 4, screenHeight - 200, 4);
-		ninja.setVelocity(new Vector(0.2f, 0f));
-		fShield = new FireShield(ninja.getX(), ninja.getY());
-		cats.add(ninja);
+		int x = numberOfCats();
+		fShield = new FireShield(0, 0);
+		switch(x){
+		case 2:
+			ninja = new Cat(screenWidth / 4, screenHeight - 70, setCatLevel(spike.level));
+			ninja.setVelocity(new Vector(-0.2f, 0f));
+			cats.add(ninja);
+			ninja = new Cat(3 * screenWidth / 4, screenHeight - 70, setCatLevel(spike.level));
+			ninja.setVelocity(new Vector(0.2f, 0f));
+			cats.add(ninja);
+			break;
+		case 3:
+			ninja = new Cat(screenWidth / 3, screenHeight - 70, setCatLevel(spike.level));
+			ninja.setVelocity(new Vector(0.2f, 0f));
+			cats.add(ninja);
+			ninja = new Cat(2 * screenWidth / 3, screenHeight - 70, setCatLevel(spike.level));
+			ninja.setVelocity(new Vector(-0.2f, 0f));
+			cats.add(ninja);
+			ninja = new Cat(screenWidth / 2, screenHeight - 200, setCatLevel(spike.level));
+			ninja.setVelocity(new Vector(0.2f, 0f));
+			cats.add(ninja);
+			break;
+		case 4:
+			ninja = new Cat(screenWidth / 4, screenHeight - 70, setCatLevel(spike.level));
+			ninja.setVelocity(new Vector(0.2f, 0f));
+			cats.add(ninja);
+			ninja = new Cat(3 * screenWidth / 4, screenHeight - 70, setCatLevel(spike.level));
+			ninja.setVelocity(new Vector(-0.2f, 0f));
+			cats.add(ninja);
+			ninja = new Cat(screenWidth / 4, screenHeight - 200, setCatLevel(spike.level));
+			ninja.setVelocity(new Vector(-0.2f, 0f));
+			cats.add(ninja);
+			ninja = new Cat(3 * screenWidth / 4, screenHeight - 200, setCatLevel(spike.level));
+			ninja.setVelocity(new Vector(0.2f, 0f));
+			cats.add(ninja);
+			break;
+		default:
+			ninja = new Cat(screenWidth / 3, screenHeight - 70, setCatLevel(spike.level));
+			ninja.setVelocity(new Vector(-0.2f, 0f));
+			cats.add(ninja);
+			ninja = new Cat(2 * screenWidth / 3, screenHeight - 70, setCatLevel(spike.level));
+			ninja.setVelocity(new Vector(0.2f, 0f));
+			cats.add(ninja);
+			ninja = new Cat(screenWidth / 4, screenHeight - 200, setCatLevel(spike.level));
+			ninja.setVelocity(new Vector(0.2f, 0f));
+			cats.add(ninja);
+			ninja = new Cat(3 * screenWidth / 4, screenHeight - 200, setCatLevel(spike.level));
+			ninja.setVelocity(new Vector(-0.2f, 0f));
+			cats.add(ninja);
+			ninja = new Cat(screenWidth / 2, screenHeight - 200, setCatLevel(spike.level));
+			ninja.setVelocity(new Vector(-0.2f, 0f));
+			cats.add(ninja);
+		}
 	}
 	
 	private int randomLevel(){
@@ -920,6 +963,56 @@ public class PlatformState extends BasicGameState {
 		}
 		else
 			return 0;
+	}
+	
+	private int numberOfCats(){
+		random = new Random();
+		float x = random.nextFloat();
+		if(x <= 0.25)
+			return 2;
+		if(x > 0.25 && x <= 0.5)
+			return 3;
+		if(x > 0.5 && x <= 0.75)
+			return 4;
+		else
+			return 5;
+	}
+	private int setCatLevel(int level){
+		random = new Random();
+		float x = random.nextFloat();
+		switch(level){
+		case 1:
+			if(x <= 0.8){
+				return 1;
+			}
+			else
+				return 2;
+		case 2:
+			if(x <= 0.2){
+				return 1;
+			}
+			if(x > 0.2 && x <= 0.9){
+				return 2;
+			}
+			else
+				return 3;
+		case 3:
+			if(x <= 0.3){
+				return 2;
+			}
+			if(x > 0.3 && x <= 0.85){
+				return 3;
+			}
+			else
+				return 4;
+		default:
+			if(x <= 0.5){
+				return 3;
+			}
+			else
+				return 4;
+		}
+		
 	}
 	
 	private int jump(){
