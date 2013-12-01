@@ -6,9 +6,13 @@ import org.newdawn.slick.SlickException;
 import jig.Entity;
 import jig.ResourceManager;
 import jig.Vector;
+
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.util.Random;
 
 public class WorldCat extends Entity {
+	public Point NW, NE, SW, SE;
 	private Vector velocity;
 	private int worldX = 30, worldY = 30;
 	private int screenX, screenY;
@@ -22,7 +26,8 @@ public class WorldCat extends Entity {
 	public WorldCat(final float x, final float y, final float vx, final float vy) throws SlickException{
 		super(x,y);
 		this.velocity = new Vector(0.0f, 0.0f);
-		addImageWithBoundingBox(ResourceManager.getImage(DogWarriors.worldImages[0]));
+		this.initialize();
+		
 		
 	}
 	public void setVelocity(final Vector v){
@@ -46,6 +51,7 @@ public class WorldCat extends Entity {
 				this.render(g);
 			}
 		}
+		
 	}
 
 	public void update(final int delta, final float sx, final float sy) {
@@ -122,6 +128,20 @@ public class WorldCat extends Entity {
 	}
 	public int getWorldValue(){
 		return rand.nextInt(10*32);
+	}
+	
+	private void initialize() {
+		this.addImageWithBoundingBox(ResourceManager.getImage(DogWarriors.worldImages[0]));
+		this.NW = new Point((int) this.getCoarseGrainedMinX(), (int) this.getCoarseGrainedMinY());
+		this.NE = new Point((int) this.getCoarseGrainedMaxX(), (int) this.getCoarseGrainedMinY());
+		this.SW = new Point((int) this.getCoarseGrainedMinX(), (int) this.getCoarseGrainedMaxY());
+		this.SE = new Point((int) this.getCoarseGrainedMaxX(), (int) this.getCoarseGrainedMaxY());
+	}
+	
+	public boolean isOnscreen(Rectangle screen) {
+		boolean onscreen = false;
+		onscreen = (screen.contains(NW) || screen.contains(NE) || screen.contains(SW) || screen.contains(SE));
+		return onscreen;
 	}
 	
 }

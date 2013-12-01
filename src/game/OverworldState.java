@@ -97,10 +97,13 @@ public class OverworldState extends BasicGameState {
         this.screenHalfHeight = screenHeight / 2;
         
         this.mapList = new ArrayList<TownMap>();
-        this.cats = new ArrayList<WorldCat>();
+        this.cats = new ArrayList<WorldCat>(6);
         this.grassTiles = new ArrayList<GrassTile>();
         this.buildings = new ArrayList<Building>();
         this.walls = new ArrayList<Wall>();
+        cats.add(new WorldCat(50, 50, 0, 0));
+        cats.add(new WorldCat(100, 100, 0, 0));
+        
         //this.fences = new ArrayList<Fence>();
         //this.powerups = new ArrayList<Powerups>();
         //this.shrubs = new ArrayList<Shrub>();
@@ -135,7 +138,7 @@ public class OverworldState extends BasicGameState {
         dog.translate(-1*offsetX, -1*offsetY);
         dog.render(g);
         dog.translate(offsetX, offsetY);
-        
+                
         for (Wall w : this.walls) {
             if (w.isOnscreen(screen)) {
                 numRenders++;
@@ -143,6 +146,16 @@ public class OverworldState extends BasicGameState {
                 w.render(g);
                 w.translate(offsetX, offsetY);
             }
+        }
+        
+        for(WorldCat c : this.cats){
+        	if(c.isOnscreen(screen)){
+        		numRenders++;
+        		c.translate(-1*offsetX, -1*offsetY);
+        		c.render(g);
+        		c.translate(offsetX, offsetY);
+        		
+        	}
         }
         
         g.drawString("Number of Renders: " + numRenders, 10, 30);
@@ -184,6 +197,15 @@ public class OverworldState extends BasicGameState {
                     dog.translate(new Vector(0.0f, dy));
                 }
             }
+        }
+        
+        for(WorldCat cat : this.cats){
+        	cat.update(0, 0, 0);
+        	Collision d = cat.collides(dog);
+        	if(d != null){
+        		game.enterState(DogWarriors.STATES_PLATFORM, new EmptyTransition(), new RotateTransition());
+        	}
+        	
         }
     }
 
