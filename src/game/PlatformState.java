@@ -27,7 +27,7 @@ public class PlatformState extends BasicGameState {
 	
 	private int screenWidth, screenHeight;
 	private int screenCenterX, screenCenterY;
-	private int level;
+	private int level, randomJump;
 	
 	private Random random;
 	
@@ -92,6 +92,8 @@ public class PlatformState extends BasicGameState {
 			throws SlickException {
 		
 		back.render(g);
+		g.drawString("HP: " + spike.currentHP + "/" + spike.maxHP, 0, 30);
+		g.drawString("Slobber: " + spike.currentSlobber + "/" + spike.maxSlobber, 0, 50);
 		t1.render(g);
 		t2.render(g);
 		p1.render(g);
@@ -176,13 +178,13 @@ public class PlatformState extends BasicGameState {
 			spike.onP2 = true;
 		}
 		
-		if((spike.getCoarseGrainedMaxX() <= p1.getCoarseGrainedMinX() || spike.getCoarseGrainedMinX() >= p1.getCoarseGrainedMaxX())
+		if((spike.getX() + 3 <= p1.getCoarseGrainedMinX() || spike.getCoarseGrainedMinX() >= p1.getCoarseGrainedMaxX())
 				&& !spike.onGround && spike.onP1){
 			spike.jump();
 			spike.onP1 = false;
 		}
 		
-		if((spike.getCoarseGrainedMaxX() <= p2.getCoarseGrainedMinX() || spike.getCoarseGrainedMinX() >= p2.getCoarseGrainedMaxX())
+		if((spike.getX() + 3 <= p2.getCoarseGrainedMinX() || spike.getCoarseGrainedMinX() >= p2.getCoarseGrainedMaxX())
 				&& !spike.onGround && spike.onP2){
 			spike.jump();
 			spike.onP2 = false;
@@ -199,83 +201,410 @@ public class PlatformState extends BasicGameState {
 			
 			if (ninja.collides(p1) != null && ninja.speed.getY() > 0 && 
 					ninja.getCoarseGrainedMaxY() >= p1.getY() - 20 &&
-					ninja.getCoarseGrainedMaxY() <= p1.getY()) {
+					ninja.getCoarseGrainedMaxY() <= p1.getY() && ninja.drop <= 0) {
 				
 				ninja.setVelocity(new Vector(ninja.speed.getX(), 0f));
 				ninja.jump.stop();
+				//System.out.println("Ninja:" + i + " on P1");
+				if(ninja.level == 1 && !ninja.onP1){
+					ninja.platTime = 7000;
+				}
+				if(ninja.level == 2 && !ninja.onP1){
+					ninja.platTime = 5000;
+				}
+				if(ninja.level == 3 && !ninja.onP1){
+					ninja.platTime = 3000;
+				}
 				ninja.onP1 = true;
 			}
-			
 			if(ninja.collides(p2) != null && ninja.speed.getY() > 0 && 
 					ninja.getCoarseGrainedMaxY() >= p2.getY() - 20 &&
 					ninja.getCoarseGrainedMaxY() <= p2.getY()) {
 				
 				ninja.setVelocity(new Vector(ninja.speed.getX(), 0f));
 				ninja.jump.stop();
+				if(ninja.level == 1 && !ninja.onP2){
+					System.out.println("On P2");
+					ninja.platTime = 7000;
+				}
+				if(ninja.level == 2 && !ninja.onP2){
+					ninja.platTime = 5000;
+				}
+				if(ninja.level == 3 && !ninja.onP2){
+					ninja.platTime = 3000;
+				}
 				ninja.onP2 = true;
 			}
-			if(ninja.time <= 0 && ninja.level <= 2 && !ninja.dead) {
-				ninja.setVelocity(new Vector(ninja.speed.getX(), -0.38f));
-				ninja.jump.restart();
-				ninja.time = 2000;
-				ninja.onP1 = false;
-				ninja.onP2 = false;
-				ninja.onGround = false;
-			}
-			
-			if(ninja.time <= 0 && ninja.level == 3 && !ninja.dead &&
-					(ninja.onGround || ninja.onP1 || ninja.onP2)) {
-				ninja.setVelocity(new Vector(ninja.speed.getX(), -0.38f));
-				if(ninja.speed.getX() < 0)
-					ninja.kick = ninja.kickL;
-				if(ninja.speed.getX() > 0)
-					ninja.kick = ninja.kickR;
-				ninja.time = 3000;
-				ninja.kTime = 450;
-				ninja.kick.restart();
-				ninja.onP1 = false;
-				ninja.onP2 = false;
-				ninja.onGround = false;
-			}
-			
-			if(ninja.time <= 0 && ninja.level == 4 && !ninja.dead) {
-				if(ninja.speed.getX() < 0){
-					ninja.shoot = ninja.shootL;
-					fBall = new Fireball(ninja.getX() - 20, ninja.getY(), -0.1f, 0f, 1);
-				}
-				if(ninja.speed.getX() >= 0) {
-					ninja.shoot = ninja.shootR;
-					fBall = new Fireball(ninja.getX(), ninja.getY() - 10, 0.1f, 0f, 0);
-				}
-				
-				fire.add(fBall);
-				ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
-				ninja.time = 3000;
-				ninja.sTime = 450;
-				ninja.shoot.restart();
-			}
-			
-			if ((ninja.getCoarseGrainedMaxX() <= p1.getCoarseGrainedMinX() 
-					|| ninja.getCoarseGrainedMinX() >= p1.getCoarseGrainedMaxX())
-					&& !ninja.onGround && ninja.onP1){
-				ninja.onP1 = false;
-			}
-			
-			if ((ninja.getCoarseGrainedMaxX() <= p2.getCoarseGrainedMinX() 
-					|| ninja.getCoarseGrainedMinX() >= p2.getCoarseGrainedMaxX())
-					&& !ninja.onGround && ninja.onP2){
-				ninja.onP2 = false;
-			}
-			
-			if (ninja.getCoarseGrainedMinX() <= 0 || ninja.getCoarseGrainedMaxX() >= screenWidth) {
-				ninja.setVelocity(new Vector(-ninja.speed.getX(), ninja.speed.getY()));
+			if(ninja.getX() >= screenWidth || ninja.getX() - 10 <= 0){
+				ninja.setVelocity(new Vector(-1 * ninja.speed.getX(), ninja.speed.getY()));
 				ninja.change = true;
 			}
 			
-			if(ninja.level == 4 && fShield.exists) {
-				fShield.setPosition(ninja.getX() - 6, ninja.getY() - 12);
+			// Level 1 AI
+			if(ninja.level == 1 && !ninja.dead) {
+				//System.out.println("platTime= " + ninja.platTime);
+				if((ninja.onGround || ninja.onP1 || ninja.onP2) && ninja.time <= 0){
+					if(jump() == 1){
+						ninja.setVelocity(new Vector(ninja.speed.getX(), -0.4f));
+						ninja.jump.restart();
+						ninja.onGround = false;
+						ninja.onP1 = false;
+						ninja.onP2 = false;
+					}
+					ninja.time = 4000;
+				}
+				if((ninja.onP1 || ninja.onP2) && ninja.platTime <= 0){
+					//System.out.println("Drop down, platTime= " + ninja.platTime);
+					ninja.onP1 = false;
+					ninja.onP2 = false;
+					ninja.drop = 300;
+				}
+				if(ninja.onP1){
+					//System.out.println("On P1");
+					if(ninja.getCoarseGrainedMaxX() >= p1.getCoarseGrainedMaxX() ||
+							ninja.getCoarseGrainedMinX() <= p1.getCoarseGrainedMinX()){
+						ninja.change = true;
+						ninja.setVelocity(ninja.speed.negate());
+						System.out.println("Change dir");
+					}
+				}
+				if(ninja.onP2){
+					if(ninja.getCoarseGrainedMaxX() >= p2.getCoarseGrainedMaxX() ||
+							ninja.getCoarseGrainedMinX() <= p2.getCoarseGrainedMinX()){
+						ninja.change = true;
+						ninja.setVelocity(ninja.speed.negate());
+					}
+				}
+			}
+		
+			// Level 2 AI
+			if(ninja.level == 2 && !ninja.dead) {
+				//If Dog not on same level as Cat
+				if(spike.getY() > ninja.getY() + 10 || spike.getY() < ninja.getY() - 10){
+					if((ninja.onGround || ninja.onP1 || ninja.onP2) && ninja.time <= 0){
+						if(jump() == 1){
+							ninja.setVelocity(new Vector(ninja.speed.getX(), -0.4f));
+							ninja.jump.restart();
+							ninja.onGround = false;
+							ninja.onP1 = false;
+							ninja.onP2 = false;
+						}
+						ninja.time = 4000;
+					}
+					if((ninja.onP1 || ninja.onP2) && ninja.platTime <= 0){
+						ninja.onP1 = false;
+						ninja.onP2 = false;
+						ninja.drop = 300;
+					}
+					if(ninja.onP1){
+						if(ninja.getCoarseGrainedMaxX() >= p1.getCoarseGrainedMaxX() ||
+								ninja.getCoarseGrainedMinX() <= p1.getCoarseGrainedMinX()){
+							ninja.change = true;
+							ninja.setVelocity(ninja.speed.negate());
+						}
+					}
+					if(ninja.onP2){
+						if(ninja.getCoarseGrainedMaxX() >= p2.getCoarseGrainedMaxX() ||
+								ninja.getCoarseGrainedMinX() <= p2.getCoarseGrainedMinX()){
+							ninja.change = true;
+							ninja.setVelocity(ninja.speed.negate());
+						}
+					}
+					if(spike.onP1 && ninja.onGround && ninja.getX() + 3 <= p1.getCoarseGrainedMaxX() &&
+							ninja.getX() >= p1.getCoarseGrainedMinX()){
+						ninja.setVelocity(new Vector(0f, -0.4f));
+						ninja.onGround = false;
+					}
+					ninja.chase = false;
+				}
+				//If Dog on same level
+				else{
+					if(ninja.getX() - spike.getX() < 0 && !ninja.chase){
+						ninja.chase = true;
+						ninja.setVelocity(new Vector(0.2f, ninja.speed.getY()));
+						ninja.change = true;
+					}
+					if(ninja.getX() - spike.getX() > 0 && !ninja.chase){
+						ninja.chase = true;
+						ninja.setVelocity(new Vector(-0.2f, ninja.speed.getY()));
+						ninja.change = true;
+					}
+					if((ninja.getX() + 3 <= p1.getCoarseGrainedMinX() || ninja.getCoarseGrainedMinX() >= p1.getCoarseGrainedMaxX())
+							&& !ninja.onGround && ninja.onP1){
+						ninja.onP1 = false;
+					}				
+					if((ninja.getX() + 3 <= p2.getCoarseGrainedMinX() || ninja.getCoarseGrainedMinX() >= p2.getCoarseGrainedMaxX())
+							&& !ninja.onGround && ninja.onP2){
+						ninja.onP2 = false;
+					}
+					//Attack if close enough
+					if(Math.abs(ninja.getX() - spike.getX()) <= 150 && ninja.kTime <= 0 && ninja.cooldown <= 0){
+						System.out.println("Kick");
+						if(ninja.speed.getX() < 0)
+							ninja.kick = ninja.kickL;
+						if(ninja.speed.getX() > 0)
+							ninja.kick = ninja.kickR;
+						ninja.kTime = 450;
+						ninja.cooldown = 1500;
+						ninja.kick.restart();
+						ninja.inAir = true;
+						ninja.setVelocity(new Vector(ninja.speed.getX() * 2, 0f));
+					}
+				}
+			}
+			
+			//Level 3 AI
+			if(ninja.level == 3 && !ninja.dead) {
+				//If Dog not on same level as Cat
+				if(spike.getY() > ninja.getY() + 100 || spike.getY() < ninja.getY() - 100){
+					if((ninja.onGround || ninja.onP1 || ninja.onP2) && ninja.time <= 0){
+						if(jump() == 1){
+							ninja.setVelocity(new Vector(ninja.speed.getX(), -0.4f));
+							ninja.jump.restart();
+							ninja.onGround = false;
+							ninja.onP1 = false;
+							ninja.onP2 = false;
+						}
+						ninja.time = 4000;
+					}
+					if((ninja.onP1 || ninja.onP2) && ninja.platTime <= 0){
+						ninja.onP1 = false;
+						ninja.onP2 = false;
+						ninja.drop = 300;
+					}
+					if(ninja.onP1){
+						if(ninja.getCoarseGrainedMaxX() >= p1.getCoarseGrainedMaxX() ||
+								ninja.getCoarseGrainedMinX() <= p1.getCoarseGrainedMinX()){
+							ninja.change = true;
+							ninja.setVelocity(ninja.speed.negate());
+						}
+					}
+					if(ninja.onP2){
+						if(ninja.getCoarseGrainedMaxX() >= p2.getCoarseGrainedMaxX() ||
+								ninja.getCoarseGrainedMinX() <= p2.getCoarseGrainedMinX()){
+							ninja.change = true;
+							ninja.setVelocity(ninja.speed.negate());
+						}
+					}
+					if(spike.onP1 && ninja.onGround && ninja.getX() + 3 <= p1.getCoarseGrainedMaxX() &&
+							ninja.getX() >= p1.getCoarseGrainedMinX()){
+						ninja.setVelocity(new Vector(0f, -0.4f));
+						ninja.onGround = false;
+					}
+					ninja.chase = false;
+					if(ninja.sTime <= 0 && ninja.speed.getX() == 0){
+						if(ninja.walk == ninja.walkR){
+							ninja.setVelocity(new Vector(0.2f, ninja.speed.getY()));
+						}
+						if(ninja.walk == ninja.walkL){
+							ninja.setVelocity(new Vector(-0.3f, ninja.speed.getY()));
+						}
+					}
+				}
+				//If Dog on same level, wider view than level 2
+				else{
+					if(ninja.getX() - spike.getX() < 0 && !ninja.chase){
+						ninja.chase = true;
+						ninja.setVelocity(new Vector(0.2f, ninja.speed.getY()));
+						ninja.change = true;
+					}
+					if(ninja.getX() - spike.getX() > 0 && !ninja.chase){
+						ninja.chase = true;
+						ninja.setVelocity(new Vector(-0.2f, ninja.speed.getY()));
+						ninja.change = true;
+					}
+					if((ninja.getX() + 3 <= p1.getCoarseGrainedMinX() || ninja.getCoarseGrainedMinX() >= p1.getCoarseGrainedMaxX())
+							&& !ninja.onGround && ninja.onP1){
+						ninja.onP1 = false;
+					}				
+					if((ninja.getX() + 3 <= p2.getCoarseGrainedMinX() || ninja.getCoarseGrainedMinX() >= p2.getCoarseGrainedMaxX())
+							&& !ninja.onGround && ninja.onP2){
+						ninja.onP2 = false;
+					}
+					if(ninja.sTime <= 0 && ninja.speed.getX() == 0){
+						if(ninja.walk == ninja.walkR){
+							ninja.setVelocity(new Vector(0.2f, ninja.speed.getY()));
+						}
+						if(ninja.walk == ninja.walkL){
+							ninja.setVelocity(new Vector(-0.2f, ninja.speed.getY()));
+						}
+					}
+					//Attack if close enough
+					if(Math.abs(ninja.getX() - spike.getX()) <= 150 && ninja.kTime <= 0 && ninja.cooldown <= 0){
+						System.out.println("Kick");
+						if(ninja.speed.getX() < 0)
+							ninja.kick = ninja.kickL;
+						if(ninja.speed.getX() > 0)
+							ninja.kick = ninja.kickR;
+							ninja.kTime = 450;
+							ninja.cooldown = 1500;
+							ninja.kick.restart();
+							ninja.inAir = true;
+							ninja.setVelocity(new Vector(ninja.speed.getX() * 2, 0f));
+						}
+					//Attack from range
+					else{
+						if(ninja.cooldown <= 0 && (spike.getY() > ninja.getY() + 10 || spike.getY() < ninja.getY() - 10)){
+							System.out.println("Shoot");
+							if(ninja.speed.getX() < 0 || ninja.shoot == ninja.shootL){
+								ninja.shoot = ninja.shootL;
+								fBall = new Fireball(ninja.getX(), ninja.getY() - 10, -0.3f, 0f, 1);
+							}
+							if(ninja.speed.getX() > 0 || ninja.shoot == ninja.shootR){
+								ninja.shoot = ninja.shootR;
+								fBall = new Fireball(ninja.getX(), ninja.getY() - 10, 0.3f, 0f, 0);
+							}
+							fire.add(fBall);
+							ninja.sTime = 450;
+							ninja.cooldown = 1500;
+							ninja.shoot.restart();
+							ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
+							
+						}
+					}
+				}
+			}
+			
+			//Level 4 AI
+			if(ninja.level == 4 && !ninja.dead) {
+				if(fShield.exists){
+					fShield.setPosition(ninja.getX(), ninja.getY() - 10);
+				}
+				if(ninja.cooldown <= 0 && (spike.getY() < ninja.getY() + 20 || spike.getY() > ninja.getY() - 20)){
+					if((!ninja.canShield && Math.abs(ninja.getX() - spike.getX()) >= 150) ||
+							(ninja.canShield && Math.abs(ninja.getX() - spike.getX()) >= 200)){
+						System.out.println("Shoot");
+						if(ninja.speed.getX() < 0 || ninja.walk == ninja.walkR){
+							ninja.shoot = ninja.shootR;
+							fBall = new Fireball(ninja.getX(), ninja.getY() - 10, 0.3f, 0f, 0);
+						}
+						if(ninja.speed.getX() > 0 || ninja.walk == ninja.walkL){
+							ninja.shoot = ninja.shootL;
+							fBall = new Fireball(ninja.getX(), ninja.getY() - 10, -0.3f, 0f, 1);
+						}
+						fire.add(fBall);
+						ninja.sTime = 450;
+						ninja.cooldown = 1500;
+						ninja.shoot.restart();
+						ninja.setVelocity(new Vector(0f, ninja.speed.getY()));	
+					}
+				}
+				if(Math.abs(ninja.getX() - spike.getX()) <= 300 && !ninja.inAir){
+					if(ninja.getX() < p1.getCoarseGrainedMaxX() && ninja.getX() > p1.getCoarseGrainedMinX() &&
+							!spike.onP1 && !spike.onP2 && ninja.onGround){
+						ninja.setVelocity(new Vector(ninja.speed.getX(), -0.4f));
+						ninja.jump.restart();
+						ninja.onGround = false;
+						ninja.onP1 = false;
+						ninja.onP2 = false;
+					}
+					//Attack if close enough and no shield
+					if(Math.abs(ninja.getX() - spike.getX()) <= 150 && ninja.kTime <= 0 
+							&& ninja.cooldown <= 0 && !ninja.canShield && !fShield.exists){
+						System.out.println("Kick");
+						if(ninja.speed.getX() < 0)
+							ninja.kick = ninja.kickR;
+						if(ninja.speed.getX() > 0)
+							ninja.kick = ninja.kickL;
+							ninja.kTime = 450;
+							ninja.cooldown = 1500;
+							ninja.kick.restart();
+							ninja.inAir = true;
+							if(ninja.speed.getX() == 0){
+								ninja.setVelocity(new Vector(0.4f, ninja.speed.getY() + 0.2f));
+							}
+							else
+								ninja.setVelocity(new Vector(ninja.speed.getX() * -2, 0f));
+					}
+					else if(Math.abs(ninja.getX() - spike.getX()) <= 150 &&
+							ninja.cooldown <= 0 && ninja.canShield){
+						fShield.setPosition(ninja.getX(), ninja.getY() - 10);
+						fShield.exists = true;
+						ninja.canShield = false;
+						ninja.cooldown = 1000;
+					}
+					else if(Math.abs(ninja.getX() - spike.getX()) <= 150 && !ninja.chase){
+						System.out.println("less than 150");
+						ninja.setVelocity(new Vector(-1 * ninja.speed.getX(), ninja.speed.getX()));
+						ninja.chase = true;
+					}
+					else if(ninja.getX() - spike.getX() < 0){
+						System.out.println("left of spike");
+						if(Math.abs(ninja.getX() - spike.getX()) >= 150 && ninja.sTime <= 0
+								&& ninja.kTime <= 0){
+							System.out.println("greather than 150");
+							if((ninja.sTime <= 0 && ninja.getX() >= 25)){
+								System.out.println("x = " + ninja.getX());
+								ninja.setVelocity(new Vector(-0.2f, ninja.speed.getY()));
+								ninja.change = true;
+							}
+							else if(ninja.getX() <= 20 && ninja.time <= 0){
+								System.out.println("less than 25, moving back");
+								ninja.setVelocity(new Vector(0.2f, ninja.speed.getY()));
+								ninja.change = true;
+								ninja.time = 300;
+							}
+							else{
+								System.out.println("x less than 25");
+								ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
+								//ninja.change = true;
+							}
+							//ninja.chase = false;
+						}
+					}
+					else if(ninja.getX() - spike.getX() > 0){
+						if(Math.abs(ninja.getX() - spike.getX()) >= 150 && ninja.sTime <= 0
+								&& ninja.kTime <= 0){
+							System.out.println("greather than 150");
+							if((ninja.sTime <= 0 && ninja.getX() <= screenWidth - 25)){
+								System.out.println("x = " + ninja.getX());
+								ninja.setVelocity(new Vector(0.2f, ninja.speed.getY()));
+								ninja.change = true;
+							}
+							else if(ninja.getX() <= 20 && ninja.time <= 0){
+								System.out.println("less than 25 from screenWidth, moving back");
+								ninja.setVelocity(new Vector(-0.2f, ninja.speed.getY()));
+								ninja.change = true;
+								ninja.time = 300;
+							}
+							else{
+								System.out.println("x less than 25");
+								ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
+								//ninja.change = true;
+							}
+							//ninja.chase = false;
+						}
+					}
+					
+					if((ninja.onP1 && spike.onP1) || (ninja.onP2 && spike.onP2)){
+						ninja.onP1 = false;
+						ninja.onP2 = false;
+						ninja.drop = 300;
+					}
+				if((ninja.getX() + 3 <= p1.getCoarseGrainedMinX() || ninja.getCoarseGrainedMinX() >= p1.getCoarseGrainedMaxX())
+						&& !ninja.onGround && ninja.onP1){
+					ninja.onP1 = false;
+				}				
+				if((ninja.getX() + 3 <= p2.getCoarseGrainedMinX() || ninja.getCoarseGrainedMinX() >= p2.getCoarseGrainedMaxX())
+						&& !ninja.onGround && ninja.onP2){
+					ninja.onP2 = false;
+				}
+				if(ninja.kTime <= 0 && ninja.inAir){
+					ninja.inAir = false;			
+				}
+				
+				}
+				
+				else{
+					if(ninja.kTime <= 0){
+						System.out.println("Set speed to 0");
+						ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
+					}
+				}
 			}
 		}
+		//	}
+		//}
 		
 		//Cat and dog collisions
 		for(int i = 0; i < cats.size(); i++) {
@@ -353,6 +682,7 @@ public class PlatformState extends BasicGameState {
 			}
 			if(fBall.collides(spike) != null){
 				fire.remove(i);
+				spike.currentHP -= 20;
 				//play sound
 				if(fBall.getX() > spike.getX()){
 					spike.setVelocity(new Vector(-0.1f, spike.speed.getY()));
@@ -366,14 +696,21 @@ public class PlatformState extends BasicGameState {
 		}
 		if(ball.collides(fShield) != null && ball.exists && fShield.exists){
 			ball.exists = false;
-			//play sound
+			//play sound and animation
 			ball.setPosition(0, 0);
 			fShield.exists = false;
 			fShield.setPosition(0, 0);
 		}
+		if(fShield.collides(shield) != null && shield.exists && fShield.exists){
+			shield.exists = false;
+			fShield.exists = false;
+			fShield.setPosition(0, 0);
+			//play sound and animation
+		}
 		if(spike.collides(fShield) != null && fShield.exists){
 			//play sound
-			spike.setVelocity(spike.speed.negate());
+			spike.setVelocity(new Vector(-2 * spike.speed.getX(), -2 * spike.speed.getY()));
+			spike.time = 200;
 			spike.currentHP -= 50;
 		}
 		
@@ -384,7 +721,7 @@ public class PlatformState extends BasicGameState {
 		}
 		for(int i = 0; i < cats.size(); i++) {
 			ninja = cats.get(i);
-			if(!ninja.onGround && !ninja.onP1 && !ninja.onP2 && !ninja.done) {
+			if(!ninja.onGround && !ninja.onP1 && !ninja.onP2 && !ninja.done && !ninja.inAir) {
 				ninja.setVelocity(ninja.speed.add(new Vector(0f, 0.01f)));
 			}
 			if(ninja.dead && ninja.done){
@@ -492,7 +829,9 @@ public class PlatformState extends BasicGameState {
 			spike.onP2 = false;
 		}
 		
-		if(input.isKeyPressed(DogWarriors.CONTROLS_KICK) && spike.cooldown <= 0 && spike.level >= 2) {
+		if(input.isKeyPressed(DogWarriors.CONTROLS_KICK) && spike.cooldown <= 0 && spike.level >= 2
+				&& spike.currentSlobber >= 1) {
+			spike.currentSlobber -= 1;
 			spike.kick.restart();
 			spike.startKick();
 			//play sound
@@ -501,7 +840,9 @@ public class PlatformState extends BasicGameState {
 			spike.cooldown = 1500;
 		}
 		
-		if(input.isKeyPressed(DogWarriors.CONTROLS_SHOOT) && !spike.shot && spike.cooldown <= 0 && spike.level >= 3) {
+		if(input.isKeyPressed(DogWarriors.CONTROLS_SHOOT) && !spike.shot && spike.cooldown <= 0 && 
+				spike.level >= 3 && spike.currentSlobber >= 2) {
+			spike.currentSlobber -= 2;
 			if(spike.direction == 0) {
 				spike.shoot = spike.shootR;
 			}
@@ -516,7 +857,9 @@ public class PlatformState extends BasicGameState {
 			spike.cooldown = 2000;
 		}
 		
-		if(input.isKeyPressed(DogWarriors.CONTROLS_SHIELD) && spike.cooldown <= 0 && spike.level >= 4) {
+		if(input.isKeyPressed(DogWarriors.CONTROLS_SHIELD) && spike.cooldown <= 0 && 
+				spike.level >= 4 && spike.currentSlobber >= 4) {
+			spike.currentSlobber -= 4;
 			shield.exists = true;
 			//play sound
 			spike.cooldown = 1500;
@@ -550,6 +893,7 @@ public class PlatformState extends BasicGameState {
 	}
 	
 	private void addCats() throws SlickException {
+		/*
 		ninja = new Cat(3 * screenWidth / 4, screenHeight - 70, 1);
 		ninja.setVelocity(new Vector(-0.2f, 0f));
 		cats.add(ninja);
@@ -558,7 +902,7 @@ public class PlatformState extends BasicGameState {
 		cats.add(ninja);
 		ninja = new Cat(screenWidth / 3, screenHeight - 70, 3);
 		ninja.setVelocity(new Vector(-0.2f, 0f));
-		cats.add(ninja);
+		cats.add(ninja);*/
 		ninja = new Cat(screenWidth / 4, screenHeight - 200, 4);
 		ninja.setVelocity(new Vector(0.2f, 0f));
 		fShield = new FireShield(ninja.getX(), ninja.getY());
@@ -576,6 +920,16 @@ public class PlatformState extends BasicGameState {
 		}
 		else
 			return 0;
+	}
+	
+	private int jump(){
+		random = new Random();
+		float x = random.nextFloat();
+		System.out.println(x);
+		if(x >= 0.5)
+			return 0;
+		else
+			return 1;
 	}
 	
 	public void chooseLevel(int i){
@@ -618,7 +972,7 @@ public class PlatformState extends BasicGameState {
 				t2X = this.screenWidth / 2;
 				t2Y = this.screenHeight - 70;
 				p1X = this.screenWidth / 3;
-				p1Y = this.screenHeight - 130;
+				p1Y = this.screenHeight - 120;
 				p2X = this.screenWidth / 2;
 				p2Y = this.screenHeight - 170;
 		}

@@ -23,6 +23,7 @@ public class Dog extends Entity {
 	public int kTime, sTime; // Ability timers
 	public int cooldown; // Time before another ability can be used
 	public int time; // Timer to remove player ability to move after a hit
+	public int slobberRegen; // Time before slobber increases
 	public int level; // Level of this Dog
 	public int maxHP, currentHP; // Hit points (Life) remaining
 	public int maxSlobber, currentSlobber; // Amount of slobber remaining, used to power special abilities
@@ -43,6 +44,7 @@ public class Dog extends Entity {
 		this.currentHP = maxHP;
 		this.maxSlobber = 10;
 		this.currentSlobber = maxSlobber;
+		this.slobberRegen = 5000;
 		this.attPwr = 50;
 		this.spPwr = 100;
 		this.sTime = 0;
@@ -58,7 +60,7 @@ public class Dog extends Entity {
 		this.normal = new ConvexPolygon(17f, 42f);
 		this.inAir = new ConvexPolygon(17, 30);
 		this.leg = new ConvexPolygon(40f, 8f);
-		
+		this.addShape(new ConvexPolygon(1, 30), new Vector(0f, 0f), Color.black, Color.black);
 		this.addShape(inAir, new Vector(0f, 5f), null, Color.black);
 		this.bestowAbilities();
 	}
@@ -123,6 +125,12 @@ public class Dog extends Entity {
 		kTime -= delta;
 		sTime -= delta;
 		cooldown -= delta;
+		slobberRegen -= delta;
+		if(slobberRegen <= 0){
+			slobberRegen = 5000;
+			if(currentSlobber < maxSlobber)
+				currentSlobber += 1;
+		}
 		if (change) {
 			change = false;
 			if (this.direction == 1) {
