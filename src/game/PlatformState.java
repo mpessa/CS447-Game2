@@ -27,7 +27,7 @@ public class PlatformState extends BasicGameState {
 	
 	private int screenWidth, screenHeight;
 	private int screenCenterX, screenCenterY;
-	private int level, expEarned, deadCats;
+	private int level, expEarned, deadCats, overTimer;
 	
 	private boolean levelOver;
 	
@@ -84,12 +84,6 @@ public class PlatformState extends BasicGameState {
 		this.world = new PlatformWorld();
 		this.back = world.new Background(screenCenterX, screenCenterY);
 		this.spike = new Dog(screenCenterX, screenHeight - 70);
-		
-		level = randomLevel();
-		this.expEarned = 0;
-		this.deadCats = 0;
-		this.chooseLevel(level);
-		this.addCats();
 
 	}
 
@@ -100,6 +94,8 @@ public class PlatformState extends BasicGameState {
 		back.render(g);
 		g.drawString("HP: " + spike.currentHP + "/" + spike.maxHP, 0, 30);
 		g.drawString("Slobber: " + spike.currentSlobber + "/" + spike.maxSlobber, 0, 50);
+		g.drawString("Current Level: " + spike.level, 0, 70);
+		g.drawString("Exp: " + spike.currentExp + "/" + spike.nextLevel, 0, 90);
 		t1.render(g);
 		t2.render(g);
 		p1.render(g);
@@ -211,7 +207,6 @@ public class PlatformState extends BasicGameState {
 				
 				ninja.setVelocity(new Vector(ninja.speed.getX(), 0f));
 				ninja.jump.stop();
-				//System.out.println("Ninja:" + i + " on P1");
 				if(ninja.level == 1 && !ninja.onP1){
 					ninja.platTime = 7000;
 				}
@@ -230,7 +225,6 @@ public class PlatformState extends BasicGameState {
 				ninja.setVelocity(new Vector(ninja.speed.getX(), 0f));
 				ninja.jump.stop();
 				if(ninja.level == 1 && !ninja.onP2){
-					System.out.println("On P2");
 					ninja.platTime = 7000;
 				}
 				if(ninja.level == 2 && !ninja.onP2){
@@ -248,7 +242,6 @@ public class PlatformState extends BasicGameState {
 			
 			// Level 1 AI
 			if(ninja.level == 1 && !ninja.dead) {
-				//System.out.println("platTime= " + ninja.platTime);
 				if((ninja.onGround || ninja.onP1 || ninja.onP2) && ninja.time <= 0){
 					if(jump() == 1){
 						ninja.setVelocity(new Vector(ninja.speed.getX(), -0.4f));
@@ -260,18 +253,15 @@ public class PlatformState extends BasicGameState {
 					ninja.time = 4000;
 				}
 				if((ninja.onP1 || ninja.onP2) && ninja.platTime <= 0){
-					//System.out.println("Drop down, platTime= " + ninja.platTime);
 					ninja.onP1 = false;
 					ninja.onP2 = false;
 					ninja.drop = 300;
 				}
 				if(ninja.onP1){
-					//System.out.println("On P1");
 					if(ninja.getCoarseGrainedMaxX() >= p1.getCoarseGrainedMaxX() ||
 							ninja.getCoarseGrainedMinX() <= p1.getCoarseGrainedMinX()){
 						ninja.change = true;
 						ninja.setVelocity(ninja.speed.negate());
-						System.out.println("Change dir");
 					}
 				}
 				if(ninja.onP2){
@@ -345,7 +335,6 @@ public class PlatformState extends BasicGameState {
 					}
 					//Attack if close enough
 					if(Math.abs(ninja.getX() - spike.getX()) <= 150 && ninja.kTime <= 0 && ninja.cooldown <= 0){
-						System.out.println("Kick");
 						if(ninja.speed.getX() < 0)
 							ninja.kick = ninja.kickL;
 						if(ninja.speed.getX() > 0)
@@ -437,7 +426,6 @@ public class PlatformState extends BasicGameState {
 					}
 					//Attack if close enough
 					if(Math.abs(ninja.getX() - spike.getX()) <= 150 && ninja.kTime <= 0 && ninja.cooldown <= 0){
-						System.out.println("Kick");
 						if(ninja.speed.getX() < 0)
 							ninja.kick = ninja.kickL;
 						if(ninja.speed.getX() > 0)
@@ -451,7 +439,6 @@ public class PlatformState extends BasicGameState {
 					//Attack from range
 					else{
 						if(ninja.cooldown <= 0 && (spike.getY() > ninja.getY() + 10 || spike.getY() < ninja.getY() - 10)){
-							System.out.println("Shoot");
 							if(ninja.speed.getX() < 0 || ninja.shoot == ninja.shootL){
 								ninja.shoot = ninja.shootL;
 								fBall = new Fireball(ninja.getX(), ninja.getY() - 10, -0.3f, 0f, 1);
@@ -535,7 +522,6 @@ public class PlatformState extends BasicGameState {
 						if(Math.abs(ninja.getX() - spike.getX()) >= 150 && ninja.sTime <= 0
 								&& ninja.kTime <= 0){
 							if((ninja.sTime <= 0 && ninja.getX() >= 25)){
-								System.out.println("x = " + ninja.getX());
 								ninja.setVelocity(new Vector(-0.2f, ninja.speed.getY()));
 								ninja.change = true;
 							}
@@ -639,7 +625,7 @@ public class PlatformState extends BasicGameState {
 				ninja.kill();
 			}
 			if(ball.collides(ninja) != null && ball.exists){
-				//insert sound
+				//play splash sound
 				ball.exists = false;
 				ball.setPosition(0, 0);
 				ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
@@ -652,7 +638,7 @@ public class PlatformState extends BasicGameState {
 				}
 			}
 			if(shield.collides(ninja) != null && shield.exists){
-				//insert sound
+				//play splash sound
 				shield.exists = false;
 				ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
 				ninja.currentHP -= spike.spPwr;
@@ -769,7 +755,13 @@ public class PlatformState extends BasicGameState {
 			levelOver = true;
 			System.out.println("Experience earned = " + expEarned);
 			spike.levelUp();
-			leave(container, game);
+		}
+		if(levelOver){
+			overTimer -= delta;
+			if(overTimer <= 0){
+				System.out.println("Leave the platform");
+				leave(container, game);
+			}
 		}
 	}
 
@@ -789,6 +781,19 @@ public class PlatformState extends BasicGameState {
 		case(2): // the game is returning from transition (To Be Defined)
 			break;
 		case(3): // the game is entering from overworld, and we need a new game
+			level = randomLevel();
+			expEarned = 0;
+			deadCats = 0;
+			spike.setPosition(screenCenterX, screenHeight - 100);
+			spike.onGround = false;
+			spike.onP1 = false;
+			spike.onP2 = false;
+			spike.jump();
+			cats.clear();
+			chooseLevel(level);
+			levelOver = false;
+			addCats();
+			overTimer = 8000;
 			break;
 		}
 	}
@@ -955,7 +960,6 @@ public class PlatformState extends BasicGameState {
 	private int randomLevel(){
 		random = new Random();
 		int x = (int)(random.nextFloat() * 100);
-		System.out.println(x);
 		if(x % 3 == 0 || x % 7 == 0)
 			return 2;
 		else if(x % 5 == 0 || x % 2 == 0){
@@ -1018,7 +1022,6 @@ public class PlatformState extends BasicGameState {
 	private int jump(){
 		random = new Random();
 		float x = random.nextFloat();
-		System.out.println(x);
 		if(x >= 0.5)
 			return 0;
 		else

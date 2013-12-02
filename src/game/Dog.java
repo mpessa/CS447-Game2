@@ -46,7 +46,7 @@ public class Dog extends Entity {
 		this.nextLevel = 250;
 		this.maxHP = 100;
 		this.currentHP = maxHP;
-		this.maxSlobber = 10;
+		this.maxSlobber = 2;
 		this.currentSlobber = maxSlobber;
 		this.slobberRegen = 5000;
 		this.attPwr = 50;
@@ -58,7 +58,6 @@ public class Dog extends Entity {
 		this.shot = false;
 		this.onP1 = false;
 		this.onP2 = false;
-		// this.onPlatform = false
 		this.onGround = false;
 		
 		this.normal = new ConvexPolygon(17f, 42f);
@@ -129,6 +128,12 @@ public class Dog extends Entity {
 			this.level++;
 			this.currentExp -= this.nextLevel;
 			this.nextLevel *= 2.5;
+			this.maxHP *= 2;
+			this.currentHP = this.maxHP;
+			this.maxSlobber *= 2;
+			this.currentSlobber = this.maxSlobber;
+			this.attPwr += 25;
+			this.spPwr += 25;
 		}
 	}
 	
