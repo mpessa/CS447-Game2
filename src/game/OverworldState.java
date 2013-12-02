@@ -4,6 +4,7 @@ package game;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.Random;
 
 import jig.Collision;
 import jig.Entity;
@@ -52,6 +53,7 @@ public class OverworldState extends BasicGameState {
     private float screenHalfWidth;
     private float screenHalfHeight;
     private Rectangle screen = new Rectangle();
+    private boolean collisionHappened;
     
     // offset of screen coordinate system from world coordinates. Will be made equal to the coordinates
     // of the player character minus half the screen size.
@@ -60,10 +62,13 @@ public class OverworldState extends BasicGameState {
     
     // Objects in the current world
     private WorldDog dog; // player character sprite
+    private WorldCat cat;
     private ArrayList<WorldCat> cats;
     private ArrayList<GrassTile> grassTiles;
     private ArrayList<Building> buildings; // Rectangular entities blocking dog movement
     private ArrayList<Wall> walls;
+    private Random rand;
+    private boolean  hit;
     //private ArrayList<Fence> fences;
     //private ArrayList<Powerup> powerups;
     //private ArrayList<Shrub> shrubs; // drawn above Spike
@@ -101,8 +106,19 @@ public class OverworldState extends BasicGameState {
         this.grassTiles = new ArrayList<GrassTile>();
         this.buildings = new ArrayList<Building>();
         this.walls = new ArrayList<Wall>();
-        cats.add(new WorldCat(50, 50, 0, 0));
-        cats.add(new WorldCat(100, 100, 0, 0));
+        this.collisionHappened = false;
+        this.rand = new Random();
+        this.hit = false;
+        //cats.add(new WorldCat(50, 50));
+        //cats.add(new WorldCat(100, 100));
+        this.cat = new WorldCat(50, 50);
+        cat.setVelocity(new Vector(.1f, .0f));
+        cats.add(cat);
+       // for (WorldCat c : cats) {
+       // 	c.setVelocity(new Vector(.1f, .0f));
+        //}
+        
+        
         
         //this.fences = new ArrayList<Fence>();
         //this.powerups = new ArrayList<Powerups>();
@@ -149,13 +165,13 @@ public class OverworldState extends BasicGameState {
         }
         
         for(WorldCat c : this.cats){
-        	if(c.isOnscreen(screen)){
+        	//if(c.isOnscreen(screen)){
         		numRenders++;
         		c.translate(-1*offsetX, -1*offsetY);
         		c.render(g);
         		c.translate(offsetX, offsetY);
         		
-        	}
+        	//}
         }
         
         g.drawString("Number of Renders: " + numRenders, 10, 30);
@@ -199,14 +215,104 @@ public class OverworldState extends BasicGameState {
             }
         }
         
+        for(WorldCat c : cats){
+        	c.update(delta);
+        	//c.setVelocity(c.getVelocity().add(new Vector(.1f, .0f)));
+        		//c.setVelocity(c.getVelocity());
+        	//c.setVelocity(new Vector(.1f, 0f));
+        	//c.setVelocity(new Vector());
+        }
+        
+            
+      
         for(WorldCat cat : this.cats){
-        	cat.update(0, 0, 0);
         	Collision d = cat.collides(dog);
         	if(d != null){
         		game.enterState(DogWarriors.STATES_PLATFORM, new EmptyTransition(), new RotateTransition());
-        	}
-        	
+        	}    	
         }
+        
+        for(WorldCat cat : this.cats){
+        	for(Wall w : walls){
+        		//cat.update(delta);
+        		Collision catCollide = cat.collides(w);
+        		//if(catCollide == null){
+        			//cat.setVelocity(new Vector(.1f, 0f));
+        			//cat.setVelocity(new Vector(cat.getVelocity().getX(), cat.getVelocity().getY()));
+        		//}
+        		if(catCollide != null){	
+        			Vector p = catCollide.getMinPenetration();
+        			if(p.getX() < 0){
+        			
+        				int random = rand.nextInt(3);
+        				System.out.println("The random number is " + random);
+        				System.out.println("We have a collision with the cat and the wall");
+        				cat.setX(cat.getX() - cat.getCoarseGrainedWidth()/2);
+ 
+        				cat.setVelocity(new Vector(0.0f, cat.getVelocity().getY()));
+        				cat.setVelocity(new Vector(randomVector(random)));
+        			}
+        			else if (p.getX() > 0) { 
+        			
+        				int random = rand.nextInt(3);
+        				System.out.println("The random number is " + random);
+        				System.out.println("We have a collision with the cat and the wall");
+        				cat.setX(cat.getX() + cat.getCoarseGrainedWidth()/2 );
+        				cat.setVelocity(new Vector(0.0f, cat.getVelocity().getY()));
+        				cat.setVelocity(new Vector(randomVector(random)));
+        				//cat.setVelocity(new Vector(0.0f, cat.getVelocity().getY()));
+        				//float dx = w.getCoarseGrainedMaxX() - cat.getCoarseGrainedMinX();
+        				//cat.translate(new Vector(dx, 0.0f));
+        				
+        			}
+        			if (p.getY() < 0) { 
+        				
+        				int random = rand.nextInt(3);
+        				System.out.println("The random number is " + random);
+        				System.out.println("We have a collision with the cat and the wall");
+        				cat.setY(cat.getY() - cat.getCoarseGrainedHeight()/2);
+        				cat.setVelocity(new Vector(cat.getVelocity().getX(), 0.0f));
+        				cat.setVelocity(new Vector(randomVector(random)));
+        				
+                       // cat.setVelocity(new Vector(cat.getVelocity().getX(), 0.0f));
+                       // float dy = cat.getCoarseGrainedMaxY() - w.getCoarseGrainedMinY();
+                       // cat.translate(new Vector(0.0f, -1.0f*dy));
+                    } else if (p.getY() > 0 ) { 
+                    	
+                    	int random = rand.nextInt(4);
+        				System.out.println("The random number is " + random);
+        				System.out.println("We have a collision with the cat and the wall");
+        				cat.setY(cat.getY() + cat.getCoarseGrainedHeight()/2);
+        				cat.setVelocity(new Vector(cat.getVelocity().getX(), 0.0f));
+        				cat.setVelocity(new Vector(randomVector(random)));
+        		
+                        //cat.setVelocity(new Vector(cat.getVelocity().getX(), 0.0f));
+                        //float dy = w.getCoarseGrainedMaxY() - cat.getCoarseGrainedMinY();
+                        //cat.translate(new Vector(0.0f, dy));
+                    }
+        		}
+        		
+        	}
+        }
+    }
+    
+    public Vector randomVector(int random){
+    	Vector randomVector = null;
+    	switch(random){
+    	case 0:
+    		randomVector = new Vector(.1f, .0f);
+    		break;
+    	case 1:
+    		randomVector = new Vector(-.1f, .0f);
+    		break;
+    	case 2:
+    		randomVector = new Vector(0.0f, -.1f);
+    		break;
+    	case 3:
+    		randomVector = new Vector(0.0f, +.1f);
+    		break;
+    	}
+    	return randomVector;
     }
 
     @Override
@@ -317,7 +423,7 @@ public class OverworldState extends BasicGameState {
             game.enterState(DogWarriors.STATES_STARTUP, new EmptyTransition(), new HorizontalSplitTransition());
         }
     }
-    
+ 
 //    private WorldDog getWorldDog() {
 //        // TODO Auto-generated method stub
 //        return dog;
