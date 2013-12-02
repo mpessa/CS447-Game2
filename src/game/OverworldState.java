@@ -114,6 +114,9 @@ public class OverworldState extends BasicGameState {
         this.cat = new WorldCat(50, 50);
         cat.setVelocity(new Vector(.1f, .0f));
         cats.add(cat);
+        this.cat = new WorldCat (100, 100);
+        cat.setVelocity(new Vector(0.0f, -.1f));
+        cats.add(cat);
        // for (WorldCat c : cats) {
        // 	c.setVelocity(new Vector(.1f, .0f));
         //}
@@ -234,61 +237,48 @@ public class OverworldState extends BasicGameState {
         
         for(WorldCat cat : this.cats){
         	for(Wall w : walls){
-        		//cat.update(delta);
         		Collision catCollide = cat.collides(w);
-        		//if(catCollide == null){
-        			//cat.setVelocity(new Vector(.1f, 0f));
-        			//cat.setVelocity(new Vector(cat.getVelocity().getX(), cat.getVelocity().getY()));
-        		//}
         		if(catCollide != null){	
         			Vector p = catCollide.getMinPenetration();
+        			int random = rand.nextInt(4);
         			if(p.getX() < 0){
-        			
-        				int random = rand.nextInt(3);
-        				System.out.println("The random number is " + random);
-        				System.out.println("We have a collision with the cat and the wall");
-        				cat.setX(cat.getX() - cat.getCoarseGrainedWidth()/2);
- 
-        				cat.setVelocity(new Vector(0.0f, cat.getVelocity().getY()));
-        				cat.setVelocity(new Vector(randomVector(random)));
+        			        				
+        				if(random != 0){
+        					System.out.println("The random number is " + random);
+        					System.out.println("We have a collision with the cat and the wall");
+        					cat.setX(cat.getX() - 10);
+        					cat.setVelocity(new Vector(0.0f, cat.getVelocity().getY()));
+        					cat.setVelocity(new Vector(randomVector(random)));
+        				}
         			}
         			else if (p.getX() > 0) { 
         			
-        				int random = rand.nextInt(3);
-        				System.out.println("The random number is " + random);
-        				System.out.println("We have a collision with the cat and the wall");
-        				cat.setX(cat.getX() + cat.getCoarseGrainedWidth()/2 );
-        				cat.setVelocity(new Vector(0.0f, cat.getVelocity().getY()));
-        				cat.setVelocity(new Vector(randomVector(random)));
-        				//cat.setVelocity(new Vector(0.0f, cat.getVelocity().getY()));
-        				//float dx = w.getCoarseGrainedMaxX() - cat.getCoarseGrainedMinX();
-        				//cat.translate(new Vector(dx, 0.0f));
-        				
+        				if(random != 1){
+        					System.out.println("The random number is " + random);
+        					System.out.println("We have a collision with the cat and the wall");
+        					cat.setX(cat.getX() + 10);
+        					cat.setVelocity(new Vector(0.0f, cat.getVelocity().getY()));
+        					cat.setVelocity(new Vector(randomVector(random)));		
+        				}       				
         			}
         			if (p.getY() < 0) { 
         				
-        				int random = rand.nextInt(3);
-        				System.out.println("The random number is " + random);
-        				System.out.println("We have a collision with the cat and the wall");
-        				cat.setY(cat.getY() - cat.getCoarseGrainedHeight()/2);
-        				cat.setVelocity(new Vector(cat.getVelocity().getX(), 0.0f));
-        				cat.setVelocity(new Vector(randomVector(random)));
-        				
-                       // cat.setVelocity(new Vector(cat.getVelocity().getX(), 0.0f));
-                       // float dy = cat.getCoarseGrainedMaxY() - w.getCoarseGrainedMinY();
-                       // cat.translate(new Vector(0.0f, -1.0f*dy));
+        				if(random != 2){
+        					System.out.println("The random number is " + random);
+        					System.out.println("We have a collision with the cat and the wall");
+        					cat.setY(cat.getY() - 10);
+        					cat.setVelocity(new Vector(cat.getVelocity().getX(), 0.0f));
+        					cat.setVelocity(new Vector(randomVector(random)));
+        				}
                     } else if (p.getY() > 0 ) { 
                     	
-                    	int random = rand.nextInt(4);
-        				System.out.println("The random number is " + random);
-        				System.out.println("We have a collision with the cat and the wall");
-        				cat.setY(cat.getY() + cat.getCoarseGrainedHeight()/2);
-        				cat.setVelocity(new Vector(cat.getVelocity().getX(), 0.0f));
-        				cat.setVelocity(new Vector(randomVector(random)));
-        		
-                        //cat.setVelocity(new Vector(cat.getVelocity().getX(), 0.0f));
-                        //float dy = w.getCoarseGrainedMaxY() - cat.getCoarseGrainedMinY();
-                        //cat.translate(new Vector(0.0f, dy));
+                    	if(random != 3){
+                    		System.out.println("The random number is " + random);
+                    		System.out.println("We have a collision with the cat and the wall");
+                    		cat.setY(cat.getY() + 10);
+                    		cat.setVelocity(new Vector(cat.getVelocity().getX(), 0.0f));
+                    		cat.setVelocity(new Vector(randomVector(random)));
+                    	}
                     }
         		}
         		
@@ -306,10 +296,10 @@ public class OverworldState extends BasicGameState {
     		randomVector = new Vector(-.1f, .0f);
     		break;
     	case 2:
-    		randomVector = new Vector(0.0f, -.1f);
+    		randomVector = new Vector(0.0f, .1f);
     		break;
     	case 3:
-    		randomVector = new Vector(0.0f, +.1f);
+    		randomVector = new Vector(0.0f, -.1f);
     		break;
     	}
     	return randomVector;
@@ -423,15 +413,4 @@ public class OverworldState extends BasicGameState {
             game.enterState(DogWarriors.STATES_STARTUP, new EmptyTransition(), new HorizontalSplitTransition());
         }
     }
- 
-//    private WorldDog getWorldDog() {
-//        // TODO Auto-generated method stub
-//        return dog;
-//    }
-//
-//    //Add a certain amount of distance on each updated to add to players current position
-//    private float LERP(float start, float finish, float transition){
-//        return start + (finish - start) * transition;
-//    }
-
 }
