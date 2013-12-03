@@ -83,7 +83,8 @@ public class DogWarriors extends StateBasedGame {
 		rDir + "sky2.jpg",
 		rDir + "tower300x100.png",
 		rDir + "tower300x200.png",
-		rDir + "wood_tileset_3.png"
+		rDir + "wood_tileset_3.png",
+		rDir + "tree.png"
 	};
 	
 	public static final String[] wallImages = {

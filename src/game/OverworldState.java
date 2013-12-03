@@ -68,7 +68,7 @@ public class OverworldState extends BasicGameState {
 	private ArrayList<TownTile> walls;
 	//private ArrayList<Fence> fences;
 	//private ArrayList<Powerup> powerups;
-	//private ArrayList<Shrub> shrubs; // drawn above Spike
+	private ArrayList<TownTile> shrubs; // drawn above Spike
 	
 	private int frontierX = 0;
 	private int frontierY = 0;
@@ -113,7 +113,7 @@ public class OverworldState extends BasicGameState {
 		this.walls = new ArrayList<TownTile>();
 		//this.fences = new ArrayList<Fence>();
 		//this.powerups = new ArrayList<Powerups>();
-		//this.shrubs = new ArrayList<Shrub>();
+		this.shrubs = new ArrayList<TownTile>();
 		
 		TownMap m = new TownMap(14, 14, 14, 14, true, 0, 0, 0);
 		m.highwayEW = true;
@@ -160,6 +160,13 @@ public class OverworldState extends BasicGameState {
 		dog.translate(-1.0f *offsetX, -1.0f *offsetY);
 		dog.render(g);
 		dog.translate(offsetX, offsetY);
+		
+		for (TownTile s : this.shrubs) {
+			if (s.isOnscreen(screen)) {
+				numRenders++;
+				s.renderTile(offsetX, offsetY, g);
+			}
+		}
 		
 		for (TownTile w : this.walls) {
 			if (w.isOnscreen(screen)) {
@@ -239,7 +246,7 @@ public class OverworldState extends BasicGameState {
 		TownMap b = getNeighbor(destX, destY, 0);
 		if (b != null) n = b.exitSlocation;
 		else {
-			System.out.println("North neighbor null, generating new exit");
+			//System.out.println("North neighbor null, generating new exit");
 			n = start + (int) (Math.random() * rangeX);
 		}
 		
@@ -247,7 +254,7 @@ public class OverworldState extends BasicGameState {
 		b = getNeighbor(destX, destY, 1);
 		if (b != null) e = b.exitWlocation;
 		else {
-			System.out.println("East neighbor null, generating new exit");
+			//System.out.println("East neighbor null, generating new exit");
 			e = start + (int) (Math.random() * rangeY);
 		}
 		
@@ -255,7 +262,7 @@ public class OverworldState extends BasicGameState {
 		b = getNeighbor(destX, destY, 2);
 		if (b != null) s = b.exitNlocation;
 		else {
-			System.out.println("South neighbor null, generating new exit");
+			//System.out.println("South neighbor null, generating new exit");
 			s = start + (int) (Math.random() * rangeX);
 		}
 		
@@ -263,13 +270,18 @@ public class OverworldState extends BasicGameState {
 		b = getNeighbor(destX, destY, 3);
 		if (b != null) w = b.exitElocation;
 		else {
-			System.out.println("West neighbor null, generating new exit");
+			//System.out.println("West neighbor null, generating new exit");
 			w = start + (int) (Math.random() * rangeY);
 		}
 		
 		// yes generate roads
 		// generate random amount of bushes, buildings, cat spawns, etc..
-		t = new TownMap(n, e, s, w, true, 0, 0, 0);
+		int generateShrubs = (int) (Math.random() * 2);
+		int shrubs = 0;
+		if (generateShrubs == 1) {
+			shrubs = (int) (Math.random() * 100);
+		}
+		t = new TownMap(n, e, s, w, true, shrubs, 0, 0);
 		return t;
 	}
 	
@@ -303,8 +315,8 @@ public class OverworldState extends BasicGameState {
 			iy = y;
 			break;
 		}
-		System.out.println("DestX = " + x + " DestY = " + y);
-		System.out.println("ix = " + ix + ", iy = " + iy);
+		//System.out.println("DestX = " + x + " DestY = " + y);
+		//System.out.println("ix = " + ix + ", iy = " + iy);
 		if (mapList.size() > ix) {
 			if (mapList.get(ix).size() > iy) t = mapList.get(ix).get(iy);
 		}
@@ -329,7 +341,7 @@ public class OverworldState extends BasicGameState {
 		roadTiles.clear();
 		buildings.clear();
 		walls.clear();
-		
+		shrubs.clear();
 		// switch to or generate new level
 		if (mapList.get(destX).get(destY) == null) {
 			TownMap t = generateMap(destX, destY);
@@ -369,6 +381,10 @@ public class OverworldState extends BasicGameState {
 				case (TownTile.ROAD):
 					img = (int) (Math.random()*DogWarriors.roadImages.length);
 					roadTiles.add(new TownTile(p, TownTile.ROAD, img));
+					break;
+				case (TownTile.SHRUB):
+					grassTiles.add(new TownTile(p, TownTile.GRASS, img));
+					walls.add(new TownTile(p, TownTile.SHRUB, 7));
 					break;
 				}
 			}

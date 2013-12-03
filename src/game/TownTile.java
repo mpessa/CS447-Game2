@@ -85,6 +85,10 @@ public class TownTile extends Entity {
 		case (TownTile.ROAD):
 			this.addImage(ResourceManager.getImage(DogWarriors.roadImages[index]));
 			break;
+		case (TownTile.SHRUB):
+			this.addImage(ResourceManager.getImage(DogWarriors.worldImages[index]), 
+					new Vector(0.0f, -16.0f));
+			break;
 		}
 	}
 	

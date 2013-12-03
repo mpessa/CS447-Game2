@@ -73,8 +73,8 @@ public class TownMap {
 				generateRoads(north, east, south, west, TownMap.ROADS_SQUARE);
 			}
 		}
-		for (int i = 0; i <= veg; i++) {
-			//generateVeg();
+		for (int i = 0; i < veg; i++) {
+			generateVeg();
 		}
 		for (int i = 0; i <= buildings; i++) {
 			//generateBuilding();
@@ -232,10 +232,29 @@ public class TownMap {
 	}
 
 	/**
-	 * Generate a "shrub" tile at a random location.
+	 * Generate a "shrub" tile at a random location. Veggies have a higher probability
+	 * of spawning near other veggies.
 	 */
 	private void generateVeg() {
-		
+		int tries = 16;
+		while (tries > 0) {
+			int x = 1 + (int) (Math.random() * (TownMap.WIDTH - 2));
+			int y = 1 + (int) (Math.random() * (TownMap.HEIGHT - 2));
+			double n = Math.random();
+			double e = Math.random();
+			double s = Math.random();
+			double w = Math.random();
+			if (tiledata[y][x] == TownTile.GRASS) {
+				float prob = 0.2f;
+				if (tiledata[y+1][x] == TownTile.ROAD) break;
+				tiledata[y][x] = TownTile.SHRUB;
+				if (n < prob && (tiledata[y+1][x] == TownTile.GRASS)) tiledata[y+1][x] = TownTile.SHRUB;
+				if (e < prob && (tiledata[y-1][x] == TownTile.GRASS)) tiledata[y-1][x] = TownTile.SHRUB;
+				if (w < prob && (tiledata[y][x+1] == TownTile.GRASS)) tiledata[y][x+1] = TownTile.SHRUB;
+				if (s < prob && (tiledata[y][x-1] == TownTile.GRASS)) tiledata[y][x-1] = TownTile.SHRUB;
+				break;
+			}
+		}
 	}
 	
 	/**
