@@ -873,6 +873,12 @@ public class PlatformState extends BasicGameState {
 					}
 				}
 			}
+			if(spike.getX() < 0 || spike.getX() > screenWidth){
+				boss.currentHP = boss.maxHP;
+				boss.setPosition(4 * screenWidth / 5, screenHeight - 150);
+				boss.jump();
+				game.enterState(DogWarriors.STATES_OVERWORLD, new EmptyTransition(), new RotateTransition());
+			}
 			boss.update(delta);
 		}
 		for(int i = 0; i < fire.size(); i++){
