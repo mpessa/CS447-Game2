@@ -9,6 +9,12 @@ import jig.Entity;
 import jig.ResourceManager;
 import jig.Vector;
 
+/**
+ * Various types of projectiles created by player character and enemies.
+ * 
+ * @author Matthew Pessa
+ *
+ */
 public class Projectile extends Entity {
 	
 	public static final Color defaultOutlineColor = Color.black;
@@ -43,7 +49,7 @@ public class Projectile extends Entity {
 					new Vector(17.0f, 13.0f), null, Projectile.outlineColor);
 		}
 		
-		if(type == 1){
+		if(type == 1){ // Waterball
 			this.addImage(ResourceManager.getImage(DogWarriors.battleImages[3]));
 			this.addShape(new ConvexPolygon(Projectile.radius, Projectile.numSides),
 						  new Vector(0.0f, 0.0f), null, Projectile.outlineColor);

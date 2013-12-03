@@ -22,6 +22,7 @@ public class Cat extends Entity{
 	public boolean dead; // True if this Cat is dead
 	public boolean done; // True if this Cat is dead and has hit the ground
 	public boolean canFire, canKick, canShield; // Abilities
+	public boolean shielded; // True if this Cat has a shield
 	public boolean chase; // True if this Cat is chasing the Dog
 	public boolean inAir; // True if this Cat is kicking at the Dog
 	public int fTime, kTime, sTime; // Ability timers
@@ -63,6 +64,7 @@ public class Cat extends Entity{
 		// this.onPlatform = false
 		this.chase = false;
 		this.inAir = false;
+		this.shielded = false;
 		this.platTime = 0;
 		this.drop = 0;
 		this.normal = new ConvexPolygon(15f, 42f);

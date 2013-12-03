@@ -4,19 +4,31 @@ package game;
 import java.util.ArrayList;
 import java.util.Random;
 
+import java.awt.Font;
+
 import jig.ResourceManager;
 import jig.Vector;
 
+import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.UnicodeFont;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.EmptyTransition;
 import org.newdawn.slick.state.transition.HorizontalSplitTransition;
 import org.newdawn.slick.state.transition.RotateTransition;
 
+/**
+ * State for the combat portion. Player character has various abilities based on it's
+ * level and encounter enemies with similar abilities based on their levels. State 
+ * exits once all enemy entities are killed or once the player character is killed.
+ * 
+ * @author Matthew Pessa
+ *
+ */
 public class PlatformState extends BasicGameState {
 
 	DogWarriors game; // game we are a state of
@@ -28,6 +40,9 @@ public class PlatformState extends BasicGameState {
 	private int screenWidth, screenHeight;
 	private int screenCenterX, screenCenterY;
 	private int level, expEarned, deadCats, overTimer;
+	
+	private Font font1, font2;
+	private UnicodeFont uFont1, uFont2;
 	
 	private boolean levelOver;
 	
@@ -43,10 +58,10 @@ public class PlatformState extends BasicGameState {
 	public ArrayList<Cat> cats;
 	
 	public Projectile ball, fBall;
-	public WaterShield shield;
-	public FireShield fShield;
-	//public Projectile fBall;
+	public Shield shield;
+	//public FireShield fShield;
 	public ArrayList<Projectile> fire;
+	public ArrayList<Shield> shields;
 	
 	public PlatformState(GameContainer container, StateBasedGame game) {
 		// THIS SPACE INTENTIONALLY LEFT BLANK
@@ -70,6 +85,11 @@ public class PlatformState extends BasicGameState {
 		for (String s : DogWarriors.possumImages) {
 			ResourceManager.loadImage(s);
 		}
+		
+		this.font1 = new Font("Arial Bold", Font.BOLD, 36);
+		this.font2 = new Font("Arial Bold", Font.BOLD, 20);
+		this.uFont1 = new UnicodeFont(font1, font1.getSize(), font1.isBold(), font1.isItalic());
+		this.uFont2 = new UnicodeFont(font2, font2.getSize(), font2.isBold(), font2.isItalic());
 
 		this.game = (DogWarriors) game;
 		this.container = container;
@@ -83,24 +103,20 @@ public class PlatformState extends BasicGameState {
 		
 		this.cats = new ArrayList<Cat>(5);
 		this.fire = new ArrayList<Projectile>(5);
-		//this.ball = new WaterBall(screenCenterX, screenCenterY);
-		this.shield = new WaterShield(screenCenterX, screenCenterY);
+		this.shields = new ArrayList<Shield>(5);
+		//this.shield = new WaterShield(screenCenterX, screenCenterY);
 		this.world = new PlatformWorld();
 		this.back = world.new Background(screenCenterX, screenCenterY);
 		this.spike = new Dog(screenCenterX, screenHeight - 70);
-		this.boss = new Possum(3 * screenWidth / 4, screenHeight - 70);
+		this.boss = new Possum(4 * screenWidth / 5, screenHeight - 70);
 
 	}
 
 	@Override
 	public void render(GameContainer container, StateBasedGame game, Graphics g)
 			throws SlickException {
-		
+		//g.setFont(uFont2);
 		back.render(g);
-		g.drawString("HP: " + spike.currentHP + "/" + spike.maxHP, 0, 30);
-		g.drawString("Slobber: " + spike.currentSlobber + "/" + spike.maxSlobber, 0, 50);
-		g.drawString("Current Level: " + spike.level, 0, 70);
-		g.drawString("Exp: " + spike.currentExp + "/" + spike.nextLevel, 0, 90);
 		t1.render(g);
 		t2.render(g);
 		p1.render(g);
@@ -139,21 +155,23 @@ public class PlatformState extends BasicGameState {
 			}
 		}
 		for(int i = 0; i < cats.size(); i++){
-			ninja = cats.get(i);
-			if(ninja.dead){
-				ninja.die.draw(ninja.getX() - 24, ninja.getY() - 24);
-			}
-			else if(ninja.canKick && ninja.kTime > 0){
-				ninja.kick.draw(ninja.getX() - 24, ninja.getY() - 24);
-			}
-			else if(ninja.canFire && ninja.sTime > 0){
-				ninja.shoot.draw(ninja.getX() - 24, ninja.getY() - 24);
-			}
-			else if(!ninja.onGround && !ninja.onP1 && !ninja.onP2){
-				ninja.jump.draw(ninja.getX() - 24, ninja.getY() - 24);
-			}
-			else if(ninja.onGround || ninja.onP1 || ninja.onP2){
-				ninja.walk.draw(ninja.getX() - 24, ninja.getY() - 24);
+			if(!boss.exists){
+				ninja = cats.get(i);
+				if(ninja.dead){
+					ninja.die.draw(ninja.getX() - 24, ninja.getY() - 24);
+				}
+				else if(ninja.canKick && ninja.kTime > 0){
+					ninja.kick.draw(ninja.getX() - 24, ninja.getY() - 24);
+				}
+				else if(ninja.canFire && ninja.sTime > 0){
+					ninja.shoot.draw(ninja.getX() - 24, ninja.getY() - 24);
+				}
+				else if(!ninja.onGround && !ninja.onP1 && !ninja.onP2){
+					ninja.jump.draw(ninja.getX() - 24, ninja.getY() - 24);
+				}
+				else if(ninja.onGround || ninja.onP1 || ninja.onP2){
+					ninja.walk.draw(ninja.getX() - 24, ninja.getY() - 24);
+				}
 			}
 		}
 		for(int i = 0; i < fire.size(); i++){
@@ -162,16 +180,14 @@ public class PlatformState extends BasicGameState {
 			if(ball.type == 0)
 				ball.fire.draw(ball.getX(), ball.getY());
 		}
-		//if(ball.exists){
-			//ball.render(g);
-		//}
-		if(shield.exists){
+		for(int i = 0; i < shields.size(); i++){
+			shield = shields.get(i);
 			shield.render(g);
 		}
-		if(fShield.exists){
-			fShield.render(g);
-		}
-		
+		g.drawString("HP: " + spike.currentHP + "/" + spike.maxHP, 0, 30);
+		g.drawString("Slobber: " + spike.currentSlobber + "/" + spike.maxSlobber, 0, 50);
+		g.drawString("Current Level: " + spike.level, 0, 70);
+		g.drawString("Exp: " + spike.currentExp + "/" + spike.nextLevel, 0, 90);
 	}
 
 	@Override
@@ -482,9 +498,9 @@ public class PlatformState extends BasicGameState {
 			
 			//Level 4 AI
 			if(ninja.level == 4 && !ninja.dead) {
-				if(fShield.exists){
-					fShield.setPosition(ninja.getX(), ninja.getY() - 10);
-				}
+				//if(fShield.exists){
+					//fShield.setPosition(ninja.getX(), ninja.getY() - 10);
+				//}
 				if(ninja.cooldown <= 0 && (spike.getY() < ninja.getY() + 20 || spike.getY() > ninja.getY() - 20)){
 					if((!ninja.canShield && Math.abs(ninja.getX() - spike.getX()) >= 150) ||
 							(ninja.canShield && Math.abs(ninja.getX() - spike.getX()) >= 200)){
@@ -514,7 +530,7 @@ public class PlatformState extends BasicGameState {
 					}
 					//Attack if close enough and no shield
 					if(Math.abs(ninja.getX() - spike.getX()) <= 150 && ninja.kTime <= 0 
-							&& ninja.cooldown <= 0 && !ninja.canShield && !fShield.exists){
+							&& ninja.cooldown <= 0 && !ninja.canShield){// && !fShield.exists){
 						if(ninja.speed.getX() < 0)
 							ninja.kick = ninja.kickR;
 						if(ninja.speed.getX() > 0)
@@ -531,8 +547,15 @@ public class PlatformState extends BasicGameState {
 					}
 					else if(Math.abs(ninja.getX() - spike.getX()) <= 150 &&
 							ninja.cooldown <= 0 && ninja.canShield){
-						fShield.setPosition(ninja.getX(), ninja.getY() - 10);
-						fShield.exists = true;
+						System.out.println("Fireshield");
+						System.out.println("shields: " + shields.size());
+						shield = new Shield(ninja.getX(), ninja.getY() - 10, 0);
+						shields.add(shield);
+						ninja.shielded = true;
+						System.out.println("Shield added");
+						System.out.println("shields: " + shields.size());
+						//fShield.setPosition(ninja.getX(), ninja.getY() - 10);
+						//fShield.exists = true;
 						ninja.canShield = false;
 						ninja.cooldown = 1000;
 					}
@@ -596,11 +619,16 @@ public class PlatformState extends BasicGameState {
 				
 				else{
 					if(ninja.kTime <= 0){
-						System.out.println("Set speed to 0");
+						//System.out.println("Set speed to 0");
 						ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
 					}
 				}
 			}
+		}
+		
+		//Boss movement
+		if(boss.exists){
+			
 		}
 		
 		//Cat and dog collisions
@@ -651,7 +679,6 @@ public class PlatformState extends BasicGameState {
 				if(ball.collides(ninja) != null && ball.type == 1){
 					//play splash sound
 					fire.remove(j);
-					//ball.setPosition(0, 0);
 					ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
 					ninja.currentHP -= spike.spPwr * 1.5;
 					if(ninja.currentHP <= 0 && !ninja.dead){
@@ -662,16 +689,19 @@ public class PlatformState extends BasicGameState {
 					}
 				}
 			}
-			if(shield.collides(ninja) != null && shield.exists){
-				//play splash sound
-				shield.exists = false;
-				ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
-				ninja.currentHP -= spike.spPwr;
-				if(ninja.currentHP <= 0 && !ninja.dead){
-					ninja.time = 600;
-					ninja.dead = true;
-					expEarned += ninja.exp;
-					deadCats++;
+			for(int j = 0; j < shields.size(); j++){
+				shield = shields.get(j);
+				if(shield.collides(ninja) != null && shield.type == 1){
+					//play splash sound
+					shields.remove(j);
+					ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
+					ninja.currentHP -= spike.spPwr;
+					if(ninja.currentHP <= 0 && !ninja.dead){
+						ninja.time = 600;
+						ninja.dead = true;
+						expEarned += ninja.exp;
+						deadCats++;
+					}
 				}
 			}
 		}
@@ -707,16 +737,18 @@ public class PlatformState extends BasicGameState {
 					fBall = fire.get(j);
 					if(ball.collides(fBall) != null && ball.type != fBall.type){
 						fire.remove(j);
-						//ball.setPosition(0, 0);
 						//play animation and sound
 						fire.remove(i);
 					}
 				}
 			}
-			if(ball.collides(shield) != null && shield.exists && ball.type != 1){
-				//play animation and sound
-				fire.remove(i);
-				shield.exists = false;
+			for(int j = 0; j < shields.size(); j++){
+				shield = shields.get(j);
+				if(ball.collides(shield) != null && ball.type != shield.type){
+					//play animation and sound
+					fire.remove(i);
+					shields.remove(j);
+				}
 			}
 			if(ball.collides(spike) != null && ball.type != 1){
 				fire.remove(i);
@@ -731,26 +763,28 @@ public class PlatformState extends BasicGameState {
 					spike.time = 200;
 				}
 			}
-		
-			if(ball.collides(fShield) != null && ball.type == 1 && fShield.exists){
-				fire.remove(i);
-				//play sound and animation
-				//ball.setPosition(0, 0);
-				fShield.exists = false;
-				fShield.setPosition(0, 0);
+		}
+		for(int i = 0; i < shields.size(); i++){
+			shield = shields.get(i);
+			for(int j = 0; j < shields.size(); j++){
+				if(i != j){
+					Shield fShield = shields.get(j);
+					if(fShield.collides(shield) != null && fShield.type != shield.type){
+						shields.remove(i);
+						shields.remove(j);
+						//shield.exists = false;
+						//fShield.exists = false;
+						//fShield.setPosition(0, 0);
+						//play sound and animation
+					}
+				}
 			}
-		}
-		if(fShield.collides(shield) != null && shield.exists && fShield.exists){
-			shield.exists = false;
-			fShield.exists = false;
-			fShield.setPosition(0, 0);
-			//play sound and animation
-		}
-		if(spike.collides(fShield) != null && fShield.exists){
-			//play sound
-			spike.setVelocity(new Vector(-2 * spike.speed.getX(), -2 * spike.speed.getY()));
-			spike.time = 200;
-			spike.currentHP -= 50;
+			if(spike.collides(shield) != null && shield.type != 1){
+				//play sound
+				spike.setVelocity(new Vector(-2 * spike.speed.getX(), -2 * spike.speed.getY()));
+				spike.time = 200;
+				spike.currentHP -= 50;
+			}
 		}
 		
 		
@@ -805,12 +839,18 @@ public class PlatformState extends BasicGameState {
 				fire.remove(i);
 			}
 		}
-		if (shield.exists) {
-			shield.setPosition(spike.getX() - 5, spike.getY());
+		for(int i = 0; i < shields.size(); i++){
+			shield = shields.get(i);
+			for(int j = 0; j < cats.size(); j++){
+				if (shield.type == 1) {
+					shield.setPosition(spike.getX() - 5, spike.getY());
+				}
+				ninja = cats.get(j);
+				if(shield.type == 0 && ninja.shielded){
+					shield.setPosition(ninja.getX(), ninja.getY() - 10);
+				}
+			}
 		}
-		//if (ball.exists) {
-			//ball.update(delta);
-		//}			
 		spike.update(delta);
 		if(cats.size() == deadCats && !levelOver){
 			spike.currentExp += expEarned;
@@ -846,7 +886,6 @@ public class PlatformState extends BasicGameState {
 			level = randomLevel();
 			expEarned = 0;
 			deadCats = 0;
-			spike.setPosition(screenCenterX, screenHeight - 100);
 			spike.onGround = false;
 			spike.onP1 = false;
 			spike.onP2 = false;
@@ -855,7 +894,13 @@ public class PlatformState extends BasicGameState {
 			cats.clear();
 			chooseLevel(level);
 			levelOver = false;
-			addCats();
+			if(!boss.exists){
+				spike.setPosition(screenCenterX, screenHeight - 100);
+				addCats();
+			}
+			else{
+				spike.setPosition(screenWidth / 5, screenHeight - 100);
+			}
 			overTimer = 5000;
 			break;
 		}
@@ -932,7 +977,8 @@ public class PlatformState extends BasicGameState {
 		if(input.isKeyPressed(DogWarriors.CONTROLS_SHIELD) && spike.cooldown <= 0 && 
 				spike.level >= 4 && spike.currentSlobber >= 4) {
 			spike.currentSlobber -= 4;
-			shield.exists = true;
+			shield = new Shield(spike.getX() - 5, spike.getY(), 1);
+			shields.add(shield);
 			//play sound
 			spike.cooldown = 1500;
 		}
@@ -966,7 +1012,7 @@ public class PlatformState extends BasicGameState {
 	
 	private void addCats() throws SlickException {
 		int x = 2;//numberOfCats();
-		fShield = new FireShield(0, 0);
+		//fShield = new FireShield(0, 0);
 		switch(x){
 		case 2:
 			ninja = new Cat(screenWidth / 4, screenHeight - 70, setCatLevel(spike.level));

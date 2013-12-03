@@ -103,6 +103,13 @@ public class Possum extends Entity{
 		this.cooldown -= delta;
 		this.kTime -= delta;
 		this.sTime -= delta;
+		if(change){
+			change = false;
+			if(walk == walkR)
+				walk = walkL;
+			if(walk == walkL)
+				walk = walkR;
+		}
 		translate(speed.scale(delta));
 	}
 	
