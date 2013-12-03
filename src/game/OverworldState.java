@@ -31,10 +31,12 @@ public class OverworldState extends BasicGameState {
 	DogWarriors game; // game we are a state of
 	GameContainer container; // gameContainer owned by the game
 	
-	private ArrayList<TownMap> mapList; // list of all generated maps in-game
+	private ArrayList<ArrayList<TownMap>> mapList; // list of all generated maps in-game
 	private TownMap currentMap; // the map we are currently on/rendering
 	
-	private int mapIndex = 0; // index of current map in the mapList
+	private int mapIndexX = 0; // index of current map in the mapList\
+	private int mapIndexY = 0;
+	
 	private int numMaps = 0; // number of maps generated
 	
 	private int numRenders = 0;
@@ -68,6 +70,9 @@ public class OverworldState extends BasicGameState {
 	//private ArrayList<Powerup> powerups;
 	//private ArrayList<Shrub> shrubs; // drawn above Spike
 	
+	private int frontierX = 0;
+	private int frontierY = 0;
+	
 	public OverworldState(GameContainer container, StateBasedGame game) {
 		// THIS SPACE INTENTIONALLY LEFT BLANK
 	}
@@ -99,7 +104,7 @@ public class OverworldState extends BasicGameState {
 		this.screenHalfWidth = screenWidth / 2.0f;
 		this.screenHalfHeight = screenHeight / 2.0f;
 		
-		this.mapList = new ArrayList<TownMap>();
+		this.mapList = new ArrayList<ArrayList<TownMap>>();
 		this.cats = new ArrayList<WorldCat>();
 		this.grassTiles = new ArrayList<TownTile>();
 		this.roadTiles = new ArrayList<TownTile>();
@@ -110,11 +115,16 @@ public class OverworldState extends BasicGameState {
 		//this.powerups = new ArrayList<Powerups>();
 		//this.shrubs = new ArrayList<Shrub>();
 		
-		TownMap m = new TownMap(8, 0, 9, 10, true, 0, 0, 0);
-		mapList.add(m);
+		TownMap m = new TownMap(14, 14, 14, 14, true, 0, 0, 0);
+		m.highwayEW = true;
+		m.highwayNS = true;
+		ArrayList<TownMap> col0 = new ArrayList<TownMap>();
+		col0.add(m);
+		mapList.add(col0);
 		this.numMaps = 1;
 		
 		this.changeLevel(0, 0);
+		this.dog = new WorldDog(currentMap.dogSpawn.scale(TownMap.TILESIZE));
 		
 	}
 
@@ -158,6 +168,8 @@ public class OverworldState extends BasicGameState {
 		
 		g.drawString("Number of Renders: " + numRenders, 10, 30);
 		g.drawString("Number of Collision Detections: " + numCDs, 10, 50);
+		g.drawString("Map Coordinates: " + mapIndexX + ", " + mapIndexY, 10, 70);
+		g.drawString("Frontiers: " + frontierX + ", " + frontierY, 10, 90);
 	}
 
 	@Override
@@ -172,7 +184,8 @@ public class OverworldState extends BasicGameState {
 		dog.update(delta);
 
 		// Collision Detection
-		numCDs = 0;		
+		numCDs = 0;
+		processExitCollisions();
 		processWallCollisions();
 		
 		// Update screen coordinates to center on dog's position
@@ -211,19 +224,50 @@ public class OverworldState extends BasicGameState {
 	}
 	
 	/**
+	 * Generates a new TownMap object, taking into account coordinates and neighboring maps
+	 * @return a newly generated TownMap object
+	 */
+	private TownMap generateMap(int destX, int destY) {
+		TownMap t = null;
+		// get north border from south border of mapList[destX][destY+2]
+		// get east border from west border of mapList[destX+2][destY]
+		// get south border from north border of mapList[destX][destY-2]
+		// get west border from east border of mapList[destX-2][destY]
+		// yes generate roads
+		// generate random amount of bushes, buildings, cat spawns, etc..
+		t = new TownMap(14, 14, 14, 14, true, 0, 0, 0);
+		return t;
+	}
+	
+	/**
 	 * Switches to the specified level in the mapList. Populates the
 	 * new level with its objects, and places the dog in its appropriate
 	 * position (differs depending on how the level is entered)
 	 * 
-	 * @param level - index in mapList to load
-	 * @param entryDir - 0 if this is the first call (we need to generate a dog), 1-4 = N, E, S, W
+	 * @param destX
+	 * @param destY
 	 */
-	private void changeLevel(int level, int entryDir) {
+	private void changeLevel(int destX, int destY) {
 		// save information from previous level
-		int outgoing = mapIndex;
-		// switch to the new level
-		mapIndex = level;
-		currentMap = mapList.get(mapIndex);
+		int outgoingX = mapIndexX;
+		int outgoingY = mapIndexY;
+		cats.clear();
+		grassTiles.clear();
+		exitTiles.clear();
+		roadTiles.clear();
+		buildings.clear();
+		walls.clear();
+		
+		// switch to or generate new level
+		if (mapList.get(destX).get(destY) == null) {
+			TownMap t = generateMap(destX, destY);
+			mapList.get(destX).set(destY, t);
+			currentMap = t;
+		} else {
+			currentMap = mapList.get(destX).get(destY);
+		}
+		mapIndexX = destX;
+		mapIndexY = destY;
 		// generate objects
 		for (int i = 0; i < TownMap.HEIGHT; i++) {
 			for (int j = 0; j < TownMap.WIDTH; j++) {
@@ -236,11 +280,15 @@ public class OverworldState extends BasicGameState {
 					break;
 				case (TownTile.EXIT_ROAD):
 					img = (int) (Math.random()*DogWarriors.roadImages.length);
-					exitTiles.add(new TownTile(p, TownTile.EXIT_ROAD, img));
+					TownTile e = new TownTile(p, TownTile.EXIT_ROAD, img);
+					assignExitType(e, i, j);
+					exitTiles.add(e);
 					break;
 				case (TownTile.EXIT_GRASS):
 					img = (int) (Math.random()*DogWarriors.grassImages.length);
-					exitTiles.add(new TownTile(p, TownTile.EXIT_GRASS, img));
+					TownTile g = new TownTile(p, TownTile.EXIT_GRASS, img);
+					assignExitType(g, i, j);
+					exitTiles.add(g);
 					break;
 				case (TownTile.WALL):
 					img = (int) (Math.random()*DogWarriors.wallImages.length);
@@ -253,22 +301,43 @@ public class OverworldState extends BasicGameState {
 				}
 			}
 		}
-		// replace or generate the dog
-		switch (entryDir) {
-		case (1): // dog is entering the map from the North
-			dog.setY((float) (1.5 * TownMap.TILESIZE)); 
-			break;
-		case (2): // dog is entering the map from the East
-			dog.setX((float) (mapWidth - 1.5 * TownMap.TILESIZE));
-			break;
-		case (3): // dog is entering the map from the South
-			dog.setY((float) (mapHeight - 1.5 * TownMap.TILESIZE));
-			break;
-		case (4): // dog is entering the map from the West
-			dog.setX((float) (1.5 * TownMap.TILESIZE));
-			break;
-		default: // dog is respawning at the map's spawn point
-			this.dog = new WorldDog(currentMap.dogSpawn.scale(TownMap.TILESIZE));
+	}
+	
+	/**
+	 * Add "padding" to the map world structure to allow new maps to be generated and set.
+	 * @param xAmount
+	 * @param yAmount
+	 */
+	private void incrementFrontier(int xAmount, int yAmount) {
+		frontierX += xAmount;
+		frontierY += yAmount;
+		if (xAmount == 0) { // increment y frontier
+			for (ArrayList<TownMap> a : mapList) {
+				for (int i = 0; i < yAmount; i++) {
+					a.add(null);
+				}
+			}
+		} else { // increment x frontier
+			for (int i = 0; i < xAmount; i++) {
+				ArrayList<TownMap> a = new ArrayList<TownMap>();
+				mapList.add(a);
+				for (int j = 0; j <= frontierY; j++) {
+					a.add(null);
+				}
+			}
+		}
+	}
+	
+	private void assignExitType(TownTile e, int i, int j) {
+		if (i == 0) {
+			e.exitType = 0;
+		} else if (i == TownMap.HEIGHT - 1) {
+			e.exitType = 2;
+		}
+		if (j == 0) {
+			e.exitType = 3;
+		} else if (j == TownMap.WIDTH - 1) {
+			e.exitType = 1;
 		}
 	}
 	
@@ -338,6 +407,58 @@ public class OverworldState extends BasicGameState {
 					float dy = w.getCoarseGrainedMaxY() - dog.getCoarseGrainedMinY();
 					dog.translate(new Vector(0.0f, dy));
 				}
+			}
+		}
+	}
+	
+	/**
+	 * Check for collisions between the dog and nearby exit tiles.
+	 */
+	private void processExitCollisions() {
+		for (TownTile e : exitTiles) {
+			if (!(dog.isNear(e))) continue; // ignore exits that are too far away to collide.
+			numCDs ++;
+			Collision c = dog.collides(e);
+			if (c != null) {
+				int destX = 0;
+				int destY = 0;
+				int n = 2; // number of frontier increments
+				switch (e.exitType) {
+				case(0): // this is a north exit
+					destX = mapIndexX;
+					if (mapIndexY == 0) { destY = 1; n = 1; }
+					else if (mapIndexY % 2 == 1) { destY = mapIndexY + 2; }
+					else { destY = mapIndexY - 2; }
+					dog.setY((float) (mapHeight - 2.5 * TownMap.TILESIZE));
+					if (destY > frontierY) incrementFrontier(0, n);
+					break;
+				case(1): // this is an east exit
+					if (mapIndexX == 1) { destX = 0; n = 1;}
+					else if (mapIndexX % 2 == 1) { destX = mapIndexX - 2; }
+					else { destX = mapIndexX + 2; }
+					destY = mapIndexY;
+					dog.setX((float) (2.5 * TownMap.TILESIZE));
+					if (destX > frontierX) incrementFrontier(n, 0);
+					break;
+				case(2): // this is a south exit
+					destX = mapIndexX;
+					if (mapIndexY == 1) { destY = 0; n = 1;}
+					else if (mapIndexY % 2 == 1) { destY = mapIndexY - 2; }
+					else { destY = mapIndexY + 2; }
+					dog.setY((float) (2.5 * TownMap.TILESIZE));
+					if (destY > frontierY) incrementFrontier(0, n);
+					break;
+				case(3): // this is a west exit
+					if (mapIndexX == 0) { destX = 1; n = 1;}
+					else if (mapIndexX % 2 == 1) { destX = mapIndexX + 2; }
+					else { destX = mapIndexX - 2; }
+					destY = mapIndexY;
+					dog.setX((float) (mapWidth - 2.5 * TownMap.TILESIZE));
+					if (destX > frontierX) incrementFrontier(n, 0);
+					break;
+				}
+				changeLevel(destX, destY);
+				break;
 			}
 		}
 	}

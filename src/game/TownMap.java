@@ -32,6 +32,14 @@ public class TownMap {
 	public boolean exitSouth = false;
 	public boolean exitWest = false;
 	
+	public int mapN = 0; // Destination map indices of exits
+	public int mapE = 0;
+	public int mapS = 0;
+	public int mapW = 0;
+	
+	public int worldX = 0; // Coordinates of this Map within the larger world
+	public int worldY = 0;
+	
 	// Special points in the current world (in tile coordinates)
 	public ArrayList<Vector> catSpawns; // spawn-points of CAT "Combative-Action Trigger" Objects
 	public Vector dogSpawn; // spawn point of the dog
@@ -162,10 +170,10 @@ public class TownMap {
 			}
 			break;
 		case(TownMap.ROADS_SQUARE):
-			int n = (int) (Math.random() * (TownMap.HEIGHT / 2 - 2));
+			int n = 2 + (int) (Math.random() * (TownMap.HEIGHT / 2 - 4));
 			int s = TownMap.HEIGHT / 2 + (int) (Math.random() * (TownMap.HEIGHT / 2 - 2));
 			int e = TownMap.WIDTH / 2 + (int) (Math.random() * (TownMap.WIDTH / 2 - 2));
-			int w = (int) (Math.random() * (TownMap.WIDTH / 2 - 2));
+			int w = 2 + (int) (Math.random() * (TownMap.WIDTH / 2 - 4));
 			for (int j = w; j <= e; j++) {
 				tiledata[n][j] = TownTile.ROAD;
 				tiledata[s][j] = TownTile.ROAD;

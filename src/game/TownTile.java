@@ -5,6 +5,7 @@ import java.awt.Rectangle;
 
 import org.newdawn.slick.Graphics;
 
+import jig.ConvexPolygon;
 import jig.Entity;
 import jig.ResourceManager;
 import jig.Vector;
@@ -29,7 +30,8 @@ public class TownTile extends Entity {
 	// Types 32-63 reserved for different building anchor types?
 	
 	public Point NW, NE, SW, SE; // Corners of this Tile
-	int type;
+	public int type;
+	public int exitType; // optional field for exits, 0 = N, 1 = E, 2 = S, 3 = W
 	
 	/**
 	 * Create a new Tile of the specified type at the specified Vector position.
@@ -74,9 +76,11 @@ public class TownTile extends Entity {
 			break;
 		case (TownTile.EXIT_ROAD):
 			this.addImage(ResourceManager.getImage(DogWarriors.roadImages[index]));
+			this.addShape(new ConvexPolygon(16.0f));
 			break;
 		case (TownTile.EXIT_GRASS):
 			this.addImage(ResourceManager.getImage(DogWarriors.grassImages[index]));
+			this.addShape(new ConvexPolygon(16.0f));
 			break;
 		case (TownTile.ROAD):
 			this.addImage(ResourceManager.getImage(DogWarriors.roadImages[index]));
