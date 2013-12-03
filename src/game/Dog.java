@@ -41,12 +41,12 @@ public class Dog extends Entity {
 		super(x, y);
 		this.speed = new Vector(0f, 0f);
 		this.direction = 1;
-		this.level = 1;
+		this.level = 4;
 		this.currentExp = 0;
 		this.nextLevel = 250;
 		this.maxHP = 100;
 		this.currentHP = maxHP;
-		this.maxSlobber = 2;
+		this.maxSlobber = 20;
 		this.currentSlobber = maxSlobber;
 		this.slobberRegen = 5000;
 		this.attPwr = 50;
@@ -63,8 +63,7 @@ public class Dog extends Entity {
 		this.normal = new ConvexPolygon(17f, 42f);
 		this.inAir = new ConvexPolygon(17, 30);
 		this.leg = new ConvexPolygon(40f, 8f);
-		this.addShape(new ConvexPolygon(1, 30), new Vector(0f, 0f), Color.black, Color.black);
-		this.addShape(inAir, new Vector(0f, 5f), null, Color.black);
+		//this.addShape(inAir, new Vector(0f, 5f), null, Color.black);
 		this.bestowAbilities();
 	}
 	
@@ -113,6 +112,11 @@ public class Dog extends Entity {
 		if (!onGround && !onP1 && !onP2) {
 			jump();
 		}
+	}
+	public void clearShapes(){
+		this.removeShape(leg);
+		this.removeShape(normal);
+		this.removeShape(inAir);
 	}
 	
 	public void setVelocity(final Vector v) {
