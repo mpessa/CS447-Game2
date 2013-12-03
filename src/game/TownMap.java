@@ -32,10 +32,10 @@ public class TownMap {
 	public boolean exitSouth = false;
 	public boolean exitWest = false;
 	
-	public int mapN = 0; // Destination map indices of exits
-	public int mapE = 0;
-	public int mapS = 0;
-	public int mapW = 0;
+	public int exitNlocation = 0;
+	public int exitElocation = 0;
+	public int exitSlocation = 0;
+	public int exitWlocation = 0;
 	
 	public int worldX = 0; // Coordinates of this Map within the larger world
 	public int worldY = 0;
@@ -61,9 +61,17 @@ public class TownMap {
 		dogSpawn = new Vector((int) (TownMap.WIDTH / 2), (int) (TownMap.HEIGHT / 2));
 		
 		generateBase();
-		generateExits(north, east, south, west);
+		int exits = generateExits(north, east, south, west);
 		if (roads) {
-			generateRoads(north, east, south, west, TownMap.ROADS_SQUARE);
+			if (exits == 4) {
+				if (Math.random() > 0.8) {
+					generateRoads(north, east, south, west, TownMap.ROADS_SQUARE);
+				} else {
+					generateRoads(north, east, south, west, TownMap.ROADS_CW);
+				}
+			} else {
+				generateRoads(north, east, south, west, TownMap.ROADS_SQUARE);
+			}
 		}
 		for (int i = 0; i <= veg; i++) {
 			//generateVeg();
@@ -99,33 +107,44 @@ public class TownMap {
 	 * @param east - How far south (in tiles) is the eastern exit?
 	 * @param south - How far east (in tiles) is the southern exit?
 	 * @param west - How far south (in tiles) is the western exit?
+	 * @return the number of exits created
 	 */
-	private void generateExits(int north, int east, int south, int west) {
+	private int generateExits(int north, int east, int south, int west) {
+		int x = 0;
 		int e = TownMap.EXIT_WIDTH;
 		if (north > e && north < TownMap.WIDTH - e - 1) {
 			exitNorth = true;
+			exitNlocation = north;
+			x++;
 			for (int i = 0; i < e; i++) tiledata[0][north - 1 - i] = TownTile.EXIT_GRASS;
 			tiledata[0][north] = TownTile.EXIT_ROAD;
 			for (int i = 0; i < e; i++) tiledata[0][north + 1 + i] = TownTile.EXIT_GRASS;
 		}
 		if (east > e && east < TownMap.HEIGHT - e - 1) {
 			exitEast = true;
+			exitElocation = east;
+			x++;
 			for (int i = 0; i < e; i++) tiledata[east - 1 - i][TownMap.WIDTH - 1] = TownTile.EXIT_GRASS;
 			tiledata[east][TownMap.WIDTH-1] = TownTile.EXIT_ROAD;
 			for (int i = 0; i < e; i++) tiledata[east + 1 + i][TownMap.WIDTH - 1] = TownTile.EXIT_GRASS;
 		}
 		if (south > e && south < TownMap.WIDTH - e - 1) {
 			exitSouth = true;
+			exitSlocation = south;
+			x++;
 			for (int i = 0; i < e; i++) tiledata[TownMap.HEIGHT-1][south - 1 - i] = TownTile.EXIT_GRASS;
 			tiledata[TownMap.HEIGHT-1][south] = TownTile.EXIT_ROAD;
 			for (int i = 0; i < e; i++) tiledata[TownMap.HEIGHT-1][south + 1 + i] = TownTile.EXIT_GRASS;
 		}
 		if (west > e && west < TownMap.HEIGHT - e - 1) {
 			exitWest = true;
+			exitWlocation = west;
+			x++;
 			for (int i = 0; i < e; i++) tiledata[west - 1 - i][0] = TownTile.EXIT_GRASS;
 			tiledata[west][0] = TownTile.EXIT_ROAD;
 			for (int i = 0; i < e; i++) tiledata[west + 1 + i][0] = TownTile.EXIT_GRASS;
 		}
+		return x;
 	}
 	
 	/**
@@ -162,10 +181,16 @@ public class TownMap {
 			for (int i = north; i < TownMap.WIDTH - 1; i++) {
 				tiledata[east][i] = TownTile.ROAD;
 			}
+			for (int i = south; i < TownMap.WIDTH - 1; i++) {
+				tiledata[east][i] = TownTile.ROAD;
+			}
 			for (int i = east + 1; i < TownMap.HEIGHT - 1; i++) {
 				tiledata[i][south] = TownTile.ROAD;
 			}
 			for (int i = 1; i < south; i++) {
+				tiledata[west][i] = TownTile.ROAD;
+			}
+			for (int i = 1; i < north; i++) {
 				tiledata[west][i] = TownTile.ROAD;
 			}
 			break;

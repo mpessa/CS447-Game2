@@ -121,6 +121,8 @@ public class OverworldState extends BasicGameState {
 		ArrayList<TownMap> col0 = new ArrayList<TownMap>();
 		col0.add(m);
 		mapList.add(col0);
+		//incrementFrontier(2, 0);
+		//incrementFrontier(0, 2);
 		this.numMaps = 1;
 		
 		this.changeLevel(0, 0);
@@ -229,13 +231,83 @@ public class OverworldState extends BasicGameState {
 	 */
 	private TownMap generateMap(int destX, int destY) {
 		TownMap t = null;
-		// get north border from south border of mapList[destX][destY+2]
+		int n, e, s, w;
+		int start = TownMap.EXIT_WIDTH + 1;
+		int rangeX = TownMap.WIDTH - start;
+		int rangeY = TownMap.HEIGHT - start;
+		// get north border from south border of mapList[destX][destY-2]
+		TownMap b = getNeighbor(destX, destY, 0);
+		if (b != null) n = b.exitSlocation;
+		else {
+			System.out.println("North neighbor null, generating new exit");
+			n = start + (int) (Math.random() * rangeX);
+		}
+		
 		// get east border from west border of mapList[destX+2][destY]
+		b = getNeighbor(destX, destY, 1);
+		if (b != null) e = b.exitWlocation;
+		else {
+			System.out.println("East neighbor null, generating new exit");
+			e = start + (int) (Math.random() * rangeY);
+		}
+		
 		// get south border from north border of mapList[destX][destY-2]
+		b = getNeighbor(destX, destY, 2);
+		if (b != null) s = b.exitNlocation;
+		else {
+			System.out.println("South neighbor null, generating new exit");
+			s = start + (int) (Math.random() * rangeX);
+		}
+		
 		// get west border from east border of mapList[destX-2][destY]
+		b = getNeighbor(destX, destY, 3);
+		if (b != null) w = b.exitElocation;
+		else {
+			System.out.println("West neighbor null, generating new exit");
+			w = start + (int) (Math.random() * rangeY);
+		}
+		
 		// yes generate roads
 		// generate random amount of bushes, buildings, cat spawns, etc..
-		t = new TownMap(14, 14, 14, 14, true, 0, 0, 0);
+		t = new TownMap(n, e, s, w, true, 0, 0, 0);
+		return t;
+	}
+	
+	private TownMap getNeighbor(int x, int y, int dir) {
+		TownMap t = null;
+		int ix = 0;
+		int iy = 0;
+		switch(dir) {
+		case(0): // get neighbor on north
+			ix = x;
+			if (y == 0) { iy = 1; }
+			else if (y % 2 == 0) { iy = y - 2; }
+			else { iy = y + 2; }
+			break;
+		case(1): // east
+			if (x == 1) { ix = 0; }
+			else if (x % 2 == 0) { ix = x + 2; }
+			else { ix = x - 2; }
+			iy = y;
+			break;
+		case(2): // south
+			ix = x;
+			if (y == 1) { iy = 0; }
+			else if (y % 2 == 0) { iy = y + 2; }
+			else { iy = y - 2; }
+			break;
+		case(3): // west
+			if (x == 0) { ix = 1; }
+			else if (x % 2 == 0) { ix = x - 2; }
+			else { ix = x + 2; }
+			iy = y;
+			break;
+		}
+		System.out.println("DestX = " + x + " DestY = " + y);
+		System.out.println("ix = " + ix + ", iy = " + iy);
+		if (mapList.size() > ix) {
+			if (mapList.get(ix).size() > iy) t = mapList.get(ix).get(iy);
+		}
 		return t;
 	}
 	
