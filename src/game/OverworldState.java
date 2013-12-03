@@ -1,15 +1,13 @@
 package game;
 
-
-
 import java.awt.Rectangle;
 import java.util.ArrayList;
 
 import jig.Collision;
-import jig.Entity;
 import jig.ResourceManager;
 import jig.Vector;
 
+import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
@@ -61,9 +59,11 @@ public class OverworldState extends BasicGameState {
 	// Objects in the current world
 	private WorldDog dog; // player character sprite
 	private ArrayList<WorldCat> cats;
-	private ArrayList<GrassTile> grassTiles;
+	private ArrayList<TownTile> grassTiles;
+	private ArrayList<TownTile> roadTiles;
+	private ArrayList<TownTile> exitTiles; // Special tiles that teleport the player when entered
 	private ArrayList<Building> buildings; // Rectangular entities blocking dog movement
-	private ArrayList<Wall> walls;
+	private ArrayList<TownTile> walls;
 	//private ArrayList<Fence> fences;
 	//private ArrayList<Powerup> powerups;
 	//private ArrayList<Shrub> shrubs; // drawn above Spike
@@ -87,25 +87,30 @@ public class OverworldState extends BasicGameState {
 		for (String s : DogWarriors.grassImages) {
 			ResourceManager.loadImage(s);
 		}
+		for (String s : DogWarriors.roadImages) {
+			ResourceManager.loadImage(s);
+		}
 		
 		this.game = (DogWarriors) game;
 		this.container = container;
 		
 		this.screenWidth = container.getWidth();
 		this.screenHeight = container.getHeight();
-		this.screenHalfWidth = screenWidth / 2;
-		this.screenHalfHeight = screenHeight / 2;
+		this.screenHalfWidth = screenWidth / 2.0f;
+		this.screenHalfHeight = screenHeight / 2.0f;
 		
 		this.mapList = new ArrayList<TownMap>();
 		this.cats = new ArrayList<WorldCat>();
-		this.grassTiles = new ArrayList<GrassTile>();
+		this.grassTiles = new ArrayList<TownTile>();
+		this.roadTiles = new ArrayList<TownTile>();
+		this.exitTiles = new ArrayList<TownTile>();
 		this.buildings = new ArrayList<Building>();
-		this.walls = new ArrayList<Wall>();
+		this.walls = new ArrayList<TownTile>();
 		//this.fences = new ArrayList<Fence>();
 		//this.powerups = new ArrayList<Powerups>();
 		//this.shrubs = new ArrayList<Shrub>();
 		
-		TownMap m = new TownMap(4, 8, 12, 16, false, 0, 0, 0);
+		TownMap m = new TownMap(8, 0, 9, 10, true, 0, 0, 0);
 		mapList.add(m);
 		this.numMaps = 1;
 		
@@ -116,32 +121,38 @@ public class OverworldState extends BasicGameState {
 	@Override
 	public void render(GameContainer container, StateBasedGame game, Graphics g)
 			throws SlickException {
-		// update offset to center on dog's position
-		offsetX = dog.getX() - screenHalfWidth;
-		offsetY = dog.getY() - screenHalfHeight;
-		this.screen.setBounds((int) offsetX, (int) offsetY, (int) screenWidth, (int) screenHeight);
-		
 		numRenders = 0;
+		g.setColor(Color.white);
 		
-		for (GrassTile t : this.grassTiles) {
+		for (TownTile t : this.grassTiles) {
 			if (t.isOnscreen(screen)) {
 				numRenders++;
-				t.translate(-1*offsetX, -1*offsetY);
-				t.render(g);
-				t.translate(offsetX, offsetY);
+				t.renderTile(offsetX, offsetY, g);
 			}
 		}
 		
-		dog.translate(-1*offsetX, -1*offsetY);
+		for (TownTile e : this.exitTiles) {
+			if (e.isOnscreen(screen)) {
+				numRenders++;
+				e.renderTile(offsetX, offsetY, g);
+			}
+		}
+		
+		for (TownTile r : this.roadTiles) {
+			if (r.isOnscreen(screen)) {
+				numRenders++;
+				r.renderTile(offsetX, offsetY, g);
+			}
+		}
+		
+		dog.translate(-1.0f *offsetX, -1.0f *offsetY);
 		dog.render(g);
 		dog.translate(offsetX, offsetY);
 		
-		for (Wall w : this.walls) {
+		for (TownTile w : this.walls) {
 			if (w.isOnscreen(screen)) {
 				numRenders++;
-				w.translate(-1*offsetX, -1*offsetY);
-				w.render(g);
-				w.translate(offsetX, offsetY);
+				w.renderTile(offsetX, offsetY, g);
 			}
 		}
 		
@@ -152,39 +163,25 @@ public class OverworldState extends BasicGameState {
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
+		
+		// Input
 		Input input = container.getInput();
 		processKeyInput(input);
+		
+		// Movement
 		dog.update(delta);
+
+		// Collision Detection
+		numCDs = 0;		
+		processWallCollisions();
 		
-		numCDs = 0;
+		// Update screen coordinates to center on dog's position
+		offsetX = dog.getX() - screenHalfWidth;
+		offsetY = dog.getY() - screenHalfHeight;
+		int w = TownMap.TILESIZE;
+		this.screen.setBounds((int) Math.floor(offsetX - w), (int) Math.floor(offsetY - w),
+							  (int) Math.ceil(screenWidth + 2.0 * w), (int) Math.ceil(screenHeight + 2.0 * w));
 		
-		// dog vs. wall collisions
-		for (Wall w : walls) {
-			if (!(dog.isNear(w))) continue; // ignore walls that are too far away to collide.
-			numCDs ++;
-			Collision c = dog.collides(w);
-			if (c != null) {
-				Vector p = c.getMinPenetration();
-				if (p.getX() < 0) { // move dog west
-					dog.setVelocity(new Vector(0.0f, dog.getVelocity().getY()));
-					float dx = dog.getCoarseGrainedMaxX() - w.getCoarseGrainedMinX();
-					dog.translate(new Vector(-1.0f*dx, 0.0f));
-				} else if (p.getX() > 0) { // move dog east
-					dog.setVelocity(new Vector(0.0f, dog.getVelocity().getY()));
-					float dx = w.getCoarseGrainedMaxX() - dog.getCoarseGrainedMinX();
-					dog.translate(new Vector(dx, 0.0f));
-				}
-				if (p.getY() < 0) { // move dog north
-					dog.setVelocity(new Vector(dog.getVelocity().getX(), 0.0f));
-					float dy = dog.getCoarseGrainedMaxY() - w.getCoarseGrainedMinY();
-					dog.translate(new Vector(0.0f, -1.0f*dy));
-				} else if (p.getY() > 0) { // move dog south
-					dog.setVelocity(new Vector(dog.getVelocity().getX(), 0.0f));
-					float dy = w.getCoarseGrainedMaxY() - dog.getCoarseGrainedMinY();
-					dog.translate(new Vector(0.0f, dy));
-				}
-			}
-		}
 	}
 
 	@Override
@@ -233,13 +230,25 @@ public class OverworldState extends BasicGameState {
 				Vector p = new Vector(j, i).scale(TownMap.TILESIZE);
 				int img = 0;
 				switch (currentMap.tiledata[i][j]) {
-				case (TownMap.GRASS):
+				case (TownTile.GRASS):
 					img = (int) (Math.random()*DogWarriors.grassImages.length);
-					grassTiles.add(new GrassTile(p, img));
+					grassTiles.add(new TownTile(p, TownTile.GRASS, img));
 					break;
-				case (TownMap.WALL):
+				case (TownTile.EXIT_ROAD):
+					img = (int) (Math.random()*DogWarriors.roadImages.length);
+					exitTiles.add(new TownTile(p, TownTile.EXIT_ROAD, img));
+					break;
+				case (TownTile.EXIT_GRASS):
+					img = (int) (Math.random()*DogWarriors.grassImages.length);
+					exitTiles.add(new TownTile(p, TownTile.EXIT_GRASS, img));
+					break;
+				case (TownTile.WALL):
 					img = (int) (Math.random()*DogWarriors.wallImages.length);
-					walls.add(new Wall(p, img));
+					walls.add(new TownTile(p, TownTile.WALL, img));
+					break;
+				case (TownTile.ROAD):
+					img = (int) (Math.random()*DogWarriors.roadImages.length);
+					roadTiles.add(new TownTile(p, TownTile.ROAD, img));
 					break;
 				}
 			}
@@ -296,14 +305,40 @@ public class OverworldState extends BasicGameState {
 		}
 	}
 	
-//	private WorldDog getWorldDog() {
-//		// TODO Auto-generated method stub
-//		return dog;
-//	}
-//
-//	//Add a certain amount of distance on each updated to add to players current position
-//	private float LERP(float start, float finish, float transition){
-//		return start + (finish - start) * transition;
-//	}
-
+	/**
+	 * Check for collisions between the dog and nearby wall tiles.
+	 */
+	private void processWallCollisions() {
+		// dog vs. wall collisions
+		for (TownTile w : walls) {
+			if (!(dog.isNear(w))) continue; // ignore walls that are too far away to collide.
+			numCDs ++;
+			Collision c = dog.collides(w);
+			if (c != null) {
+				Vector p = c.getMinPenetration();
+				
+				if (p.getX() < 0) { // move dog west
+					dog.setVelocity(new Vector(0.0f, dog.getVelocity().getY()));
+					float dx = dog.getCoarseGrainedMaxX() - w.getCoarseGrainedMinX();
+					dog.translate(new Vector(-1.0f*dx, 0.0f));
+					
+				} else if (p.getX() > 0) { // move dog east
+					dog.setVelocity(new Vector(0.0f, dog.getVelocity().getY()));
+					float dx = w.getCoarseGrainedMaxX() - dog.getCoarseGrainedMinX();
+					dog.translate(new Vector(dx, 0.0f));
+				}
+				
+				if (p.getY() < 0) { // move dog north
+					dog.setVelocity(new Vector(dog.getVelocity().getX(), 0.0f));
+					float dy = dog.getCoarseGrainedMaxY() - w.getCoarseGrainedMinY();
+					dog.translate(new Vector(0.0f, -1.0f*dy));
+					
+				} else if (p.getY() > 0) { // move dog south
+					dog.setVelocity(new Vector(dog.getVelocity().getX(), 0.0f));
+					float dy = w.getCoarseGrainedMaxY() - dog.getCoarseGrainedMinY();
+					dog.translate(new Vector(0.0f, dy));
+				}
+			}
+		}
+	}
 }

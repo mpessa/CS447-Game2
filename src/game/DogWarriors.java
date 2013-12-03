@@ -93,7 +93,7 @@ public class DogWarriors extends StateBasedGame {
 		rDir + "wall_vines3.png",
 		rDir + "wall_vines4.png",
 		rDir + "wall_vines5.png",
-		rDir + "wall_vines6.png",
+		rDir + "wall_vines6.png"
 	};
 	
 	public static final String[] grassImages = {
@@ -108,7 +108,13 @@ public class DogWarriors extends StateBasedGame {
 		rDir + "grass_8.png",
 		rDir + "grass_9.png",
 		rDir + "grass_10.png",
-		rDir + "grass_11.png",
+		rDir + "grass_11.png"
+	};
+	
+	public static final String[] roadImages = {
+		rDir + "dirt0.png",
+		rDir + "dirt1.png",
+		rDir + "dirt2.png"
 	};
 	
 	// Sounds
