@@ -20,11 +20,13 @@ public class Possum extends Entity{
 
 	public boolean onP1, onP2, onGround; // Indicates if the Possum is on a platform or ground
 	public boolean change; // Indicates that a change in direction is needed
-	public boolean shot, kicking; // Indicates if these abilities are being used
+	public boolean shooting, kicking; // Indicates if these abilities are being used
 	public boolean exists; // Indicates if the Possum is supposed to exist
 	public boolean dead; // True if the Possum is now dead
+	public boolean facing; // True if the Possum is facing the Dog
 	
 	public int cooldown; // Time between ability uses
+	public int time; // Time between hits
 	public int sTime, kTime; // Duration of movements for shooting and kicking
 	public int maxHP, currentHP; // Hit points of Possum
 	public int attPwr; //Amount of damage that the Possum deals
@@ -42,20 +44,24 @@ public class Possum extends Entity{
 		this.cooldown = 0;
 		this.sTime = 0;
 		this.kTime = 0;
+		this.time = 0;
 		this.attPwr = 30;
 		this.change = false;
 		this.onP1 = false;
 		this.onP2 = false;
 		this.onGround = false;
-		this.exists = false;
+		this.facing = true;
+		this.kicking = false;
+		this.shooting = false;
+		this.exists = true;
 		this.dead = false;
-		this.speed = new Vector(-0.25f, 0f);
+		this.speed = new Vector(0f, 0f);
 		this.normal = new ConvexPolygon(38f, 58f);
 		this.inAir = new ConvexPolygon(22, 30);
 		this.kick1 = new ConvexPolygon(27f, 58f);
 		this.kick2 = new ConvexPolygon(65f, 12f);
-		this.addShape(normal, new Vector(7f, 7f), null, Color.black);
-		//this.addShape(inAir, new Vector(6f, 2f), null, Color.black);
+		//this.addShape(normal, new Vector(7f, 7f), null, Color.black);
+		this.addShape(inAir, new Vector(6f, 15f), null, Color.black);
 		//this.addShape(kick1, new Vector(9f, 7f), null, Color.black);
 		//this.addShape(kick2, new Vector(9f, 6f), null, Color.black);
 		this.bestowAbilities();
@@ -67,8 +73,12 @@ public class Possum extends Entity{
 	}
 	
 	public void jump() {
-		this.addShape(inAir, new Vector(6f, 2f), null, Color.black);
+		this.addShape(inAir, new Vector(6f, 15f), null, Color.black);
 		this.removeShape(normal);
+		this.jump.restart();
+		this.onGround = false;
+		this.onP1 = false;
+		this.onP2 = false;
 	}
 	
 	public void startKick() {
@@ -103,6 +113,7 @@ public class Possum extends Entity{
 		this.cooldown -= delta;
 		this.kTime -= delta;
 		this.sTime -= delta;
+		this.time -= delta;
 		if(change){
 			change = false;
 			if(walk == walkR)
