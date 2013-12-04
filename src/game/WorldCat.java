@@ -17,7 +17,7 @@ public class WorldCat extends Entity {
 	private float defaultAcceleration = 0.2f;
 	private float acceleration; // amount this dog moves per update
 	private float maxSpeed = 0.5f;
-	private Vector velocity;
+	public Vector velocity;
 	private int worldX = 30, worldY = 30;
 	private int screenX, screenY;
 	private float destinationX = 0;
@@ -25,11 +25,15 @@ public class WorldCat extends Entity {
 	private int changePath = 1000;
 	private int movePath = 30;
 	private int randomInt;
+	public double time = 0;
+	public boolean chase = false;
+	public Vector reset = null;
 	Random rand = new Random();
 	
 	public WorldCat(final float x, final float y) throws SlickException{
 		super(x,y);
-		this.velocity = new Vector(0.1f, 0.1f);
+		this.velocity = new Vector(0.0f, 0.0f);
+		this.reset = this.velocity;
 		this.initialize();
 		
 		
@@ -75,6 +79,13 @@ public class WorldCat extends Entity {
 
 	public void setAcceleration(float acceleration) {
 		this.acceleration = acceleration;
+	}
+	
+	public void bounce(float surfaceTangent){
+		if(time + 75 < System.currentTimeMillis()){
+			velocity = velocity.bounce(surfaceTangent);
+			//time = System.currentTimeMillis();
+		}
 	}
 	
 }

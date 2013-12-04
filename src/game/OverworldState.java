@@ -38,22 +38,23 @@ public class OverworldState extends BasicGameState {
     private TownMap currentMap; // the map we are currently on/rendering
     
     private int mapIndex = 0; // index of current map in the mapList
-    private int numMaps = 0; // number of maps generated
-    
+    private int numMaps = 0; // number of maps generated 
     private int numRenders = 0;
     private int numCDs = 0;
+    private int randomX;
+    private int randomY;
+   
+    
     
     // size of world map in pixels
     private final int mapWidth = TownMap.TILESIZE * TownMap.WIDTH;
     private final int mapHeight = TownMap.TILESIZE * TownMap.HEIGHT;
-    
     // screen dimensions
     private float screenWidth;
     private float screenHeight;
     private float screenHalfWidth;
     private float screenHalfHeight;
     private Rectangle screen = new Rectangle();
-    private boolean collisionHappened;
     
     // offset of screen coordinate system from world coordinates. Will be made equal to the coordinates
     // of the player character minus half the screen size.
@@ -68,7 +69,7 @@ public class OverworldState extends BasicGameState {
     private ArrayList<Building> buildings; // Rectangular entities blocking dog movement
     private ArrayList<Wall> walls;
     private Random rand;
-    private boolean  hit;
+    private boolean  hit = false;
     //private ArrayList<Fence> fences;
     //private ArrayList<Powerup> powerups;
     //private ArrayList<Shrub> shrubs; // drawn above Spike
@@ -92,6 +93,9 @@ public class OverworldState extends BasicGameState {
         for (String s : DogWarriors.grassImages) {
             ResourceManager.loadImage(s);
         }
+        for (String s : DogWarriors.dogImages) {
+			ResourceManager.loadImage(s);
+		}
         
         this.game = (DogWarriors) game;
         this.container = container;
@@ -106,16 +110,15 @@ public class OverworldState extends BasicGameState {
         this.grassTiles = new ArrayList<GrassTile>();
         this.buildings = new ArrayList<Building>();
         this.walls = new ArrayList<Wall>();
-        this.collisionHappened = false;
         this.rand = new Random();
         this.hit = false;
         //cats.add(new WorldCat(50, 50));
         //cats.add(new WorldCat(100, 100));
-        this.cat = new WorldCat(50, 50);
-        cat.setVelocity(new Vector(.1f, .0f));
+        this.cat = new WorldCat(250, 250);
+        cat.setVelocity(new Vector(.0f, .2f));
         cats.add(cat);
-        this.cat = new WorldCat (100, 100);
-        cat.setVelocity(new Vector(0.0f, -.1f));
+        this.cat = new WorldCat (300, 300);
+        cat.setVelocity(new Vector(0.0f, -.2f));
         cats.add(cat);
        // for (WorldCat c : cats) {
        // 	c.setVelocity(new Vector(.1f, .0f));
@@ -187,9 +190,9 @@ public class OverworldState extends BasicGameState {
         Input input = container.getInput();
         processKeyInput(input);
         dog.update(delta);
-        
+        hit = false;
         numCDs = 0;
-        
+       
         // dog vs. wall collisions
         for (Wall w : walls) {
             if (!(dog.isNear(w))) continue; // ignore walls that are too far away to collide.
@@ -220,14 +223,8 @@ public class OverworldState extends BasicGameState {
         
         for(WorldCat c : cats){
         	c.update(delta);
-        	//c.setVelocity(c.getVelocity().add(new Vector(.1f, .0f)));
-        		//c.setVelocity(c.getVelocity());
-        	//c.setVelocity(new Vector(.1f, 0f));
-        	//c.setVelocity(new Vector());
         }
-        
-            
-      
+     
         for(WorldCat cat : this.cats){
         	Collision d = cat.collides(dog);
         	if(d != null){
@@ -238,73 +235,42 @@ public class OverworldState extends BasicGameState {
         for(WorldCat cat : this.cats){
         	for(Wall w : walls){
         		Collision catCollide = cat.collides(w);
-        		if(catCollide != null){	
+        		//randomX = rand.nextInt(90) - 10;
+        		//randomY = rand.nextInt(10);
+        		if(w.collides(cat) != null){
         			Vector p = catCollide.getMinPenetration();
-        			int random = rand.nextInt(4);
+        			//System.out.println("We have a collision");
+        			//System.out.println("The coordinates are x: " + w.getX() + " y: " + w.getY());
+        			//Cat has made contact with right wall
         			if(p.getX() < 0){
-        			        				
-        				if(random != 0){
-        					System.out.println("The random number is " + random);
-        					System.out.println("We have a collision with the cat and the wall");
-        					cat.setX(cat.getX() - 10);
-        					cat.setVelocity(new Vector(0.0f, cat.getVelocity().getY()));
-        					cat.setVelocity(new Vector(randomVector(random)));
-        				}
+        				cat.setX(cat.getX() - 5);
+        				cat.bounce(80);
+        				//System.out.println("The coordinates are x: " + w.getX() + " y: " + w.getY());
         			}
-        			else if (p.getX() > 0) { 
-        			
-        				if(random != 1){
-        					System.out.println("The random number is " + random);
-        					System.out.println("We have a collision with the cat and the wall");
-        					cat.setX(cat.getX() + 10);
-        					cat.setVelocity(new Vector(0.0f, cat.getVelocity().getY()));
-        					cat.setVelocity(new Vector(randomVector(random)));		
-        				}       				
+        			//cat has made contact with left wall
+        			else if(p.getX() > 0){
+        				cat.setX(cat.getX() + 5);
+        				cat.bounce(80);
+        				//System.out.println("The coordinates are x: " + w.getX() + " y: " + w.getY());
         			}
-        			if (p.getY() < 0) { 
-        				
-        				if(random != 2){
-        					System.out.println("The random number is " + random);
-        					System.out.println("We have a collision with the cat and the wall");
-        					cat.setY(cat.getY() - 10);
-        					cat.setVelocity(new Vector(cat.getVelocity().getX(), 0.0f));
-        					cat.setVelocity(new Vector(randomVector(random)));
-        				}
-                    } else if (p.getY() > 0 ) { 
-                    	
-                    	if(random != 3){
-                    		System.out.println("The random number is " + random);
-                    		System.out.println("We have a collision with the cat and the wall");
-                    		cat.setY(cat.getY() + 10);
-                    		cat.setVelocity(new Vector(cat.getVelocity().getX(), 0.0f));
-                    		cat.setVelocity(new Vector(randomVector(random)));
-                    	}
-                    }
+        			//cat has made contact with bottom of screen
+        			else if(p.getY()  < 0){
+        				cat.setY(cat.getY() - 5);
+        				cat.bounce(10);
+        				//System.out.println("The coordinates are x: " + w.getX() + " y: " + w.getY());
+        			}
+        			//cat has top of screen
+        			else if(p.getY()  > 0){
+        				cat.setY(cat.getY() + 5);
+        				cat.bounce(10);
+        				//System.out.println("The coordinates are x: " + w.getX() + " y: " + w.getY());
+        			}
         		}
         		
         	}
         }
     }
     
-    public Vector randomVector(int random){
-    	Vector randomVector = null;
-    	switch(random){
-    	case 0:
-    		randomVector = new Vector(.1f, .0f);
-    		break;
-    	case 1:
-    		randomVector = new Vector(-.1f, .0f);
-    		break;
-    	case 2:
-    		randomVector = new Vector(0.0f, .1f);
-    		break;
-    	case 3:
-    		randomVector = new Vector(0.0f, -.1f);
-    		break;
-    	}
-    	return randomVector;
-    }
-
     @Override
     public int getID() {
         return 3;
