@@ -83,7 +83,8 @@ public class DogWarriors extends StateBasedGame {
 		rDir + "sky2.jpg",
 		rDir + "tower300x100.png",
 		rDir + "tower300x200.png",
-		rDir + "wood_tileset_3.png"
+		rDir + "wood_tileset_3.png",
+		rDir + "tree.png"
 	};
 	
 	public static final String[] wallImages = {
@@ -93,7 +94,7 @@ public class DogWarriors extends StateBasedGame {
 		rDir + "wall_vines3.png",
 		rDir + "wall_vines4.png",
 		rDir + "wall_vines5.png",
-		rDir + "wall_vines6.png",
+		rDir + "wall_vines6.png"
 	};
 	
 	public static final String[] grassImages = {
@@ -108,7 +109,13 @@ public class DogWarriors extends StateBasedGame {
 		rDir + "grass_8.png",
 		rDir + "grass_9.png",
 		rDir + "grass_10.png",
-		rDir + "grass_11.png",
+		rDir + "grass_11.png"
+	};
+	
+	public static final String[] roadImages = {
+		rDir + "dirt0.png",
+		rDir + "dirt1.png",
+		rDir + "dirt2.png"
 	};
 	
 	// Sounds
@@ -150,6 +157,7 @@ public class DogWarriors extends StateBasedGame {
 	public static final int CONTROLS_CHEAT_1 = Input.KEY_1;
 	public static final int CONTROLS_QUIT = Input.KEY_ESCAPE;
 	public static final int CONTROLS_START = Input.KEY_RETURN;
+	public static final int CONTROLS_MAP = Input.KEY_M;
 	
 	// States Mapping
 	public static final int STATES_STARTUP = 0;

@@ -1,16 +1,17 @@
 ## Open Issues ##
-[1] Create algorithm for placing tiles on world map
-[6] Create collisions for world map
+
 [8] Create boss entity
 [9] Create powerups and chew toys
-[10] Create smooth transitions between levels and maps
 [12] Create cat AI for world map
 
 ## Closed Issues ##
 
+[1] Create algorithm for placing tiles on world map
 [2] Create world map
 [3] Create platform world
 [4] Create dog and cat entities
 [5] Create physics for platform world
+[6] Create collisions for world map
 [7] Implement leveling system
+[10] Create smooth transitions between levels and maps
 [11] Create cat AI for platform world
