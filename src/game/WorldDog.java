@@ -2,9 +2,13 @@ package game;
 
 import java.awt.Rectangle;
 
+import org.newdawn.slick.Animation;
+import org.newdawn.slick.SpriteSheet;
+
 import jig.Entity;
 import jig.ResourceManager;
 import jig.Vector;
+import jig.Shape;
 
 /**
  * Player Character used in the Overworld game
@@ -18,8 +22,13 @@ public class WorldDog extends Entity{
 	private float defaultAcceleration = 0.2f;
 	private float acceleration; // amount this dog moves per update
 	private float maxSpeed = 0.5f;
-	private Vector velocity;
+	public boolean change;
+	public Vector velocity;
 	public int switchTimerA, switchTimerW, switchTimerS, switchTimerD;
+	public int direction;
+	public Shape normal;
+	public SpriteSheet walkingR, walkingL;
+	public Animation walkR, walkL, walk;
 	
 	/**
 	 * Creates a new WorldDog at the specified Vector coordinates
@@ -45,6 +54,9 @@ public class WorldDog extends Entity{
 		this.switchTimerA = 200;
 		this.switchTimerW = 200;
 		this.switchTimerD = 200;
+		this.direction = 1;
+		this.change = false;
+		//this.moveDog();
 		this.velocity = new Vector(0.0f, 0.0f);
 		this.setAcceleration(defaultAcceleration);
 		this.addImageWithBoundingBox(ResourceManager.getImage(DogWarriors.worldImages[0]));	
@@ -59,6 +71,17 @@ public class WorldDog extends Entity{
 	}
 
 	public void update(final int delta) {
+		if (change) {
+			change = false;
+			if (this.direction == 1) {
+				walk = walkR;
+				this.direction = 0;
+			}
+			else if(this.direction == 0) {
+				walk = walkL;
+				this.direction = 1;
+			}
+		}
 		translate(velocity.scale(delta));
 		velocity = velocity.scale(1.0f-dampingFactor);
 	}
@@ -69,6 +92,14 @@ public class WorldDog extends Entity{
 
 	public void setAcceleration(float acceleration) {
 		this.acceleration = acceleration;
+	}
+	
+	public void moveDog(){
+		this.walkingR = new SpriteSheet(ResourceManager.getImage(DogWarriors.dogImages[5]), 25, 32);
+		this.walkingL = new SpriteSheet(ResourceManager.getImage(DogWarriors.dogImages[4]), 25, 32);		
+		this.walkR = new Animation(walkingR, 150);
+		this.walkL = new Animation(walkingL, 150);
+		this.walk = walkR;
 	}
 	
 	/**
