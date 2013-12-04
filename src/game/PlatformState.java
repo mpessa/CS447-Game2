@@ -4,19 +4,32 @@ package game;
 import java.util.ArrayList;
 import java.util.Random;
 
+import java.awt.Font;
+
 import jig.ResourceManager;
 import jig.Vector;
 
+import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.TrueTypeFont;
+import org.newdawn.slick.UnicodeFont;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.EmptyTransition;
 import org.newdawn.slick.state.transition.HorizontalSplitTransition;
 import org.newdawn.slick.state.transition.RotateTransition;
 
+/**
+ * State for the combat portion. Player character has various abilities based on it's
+ * level and encounters enemies with similar abilities based on their levels. State 
+ * exits once all enemy entities are killed or once the player character is killed.
+ * 
+ * @author Matthew Pessa
+ *
+ */
 public class PlatformState extends BasicGameState {
 
 	DogWarriors game; // game we are a state of
@@ -27,7 +40,11 @@ public class PlatformState extends BasicGameState {
 	
 	private int screenWidth, screenHeight;
 	private int screenCenterX, screenCenterY;
+	private int catX, catY;
 	private int level, expEarned, deadCats, overTimer;
+	
+	private Font font1, font2;
+	private TrueTypeFont uFont1, uFont2;
 	
 	private boolean levelOver;
 	
@@ -39,13 +56,15 @@ public class PlatformState extends BasicGameState {
 	
 	public Dog spike;
 	public Cat ninja;
+	public Possum boss;
 	public ArrayList<Cat> cats;
 	
-	public WaterBall ball;
-	public WaterShield shield;
-	public FireShield fShield;
-	public Fireball fBall;
-	public ArrayList<Fireball> fire;
+	public Projectile ball, fBall;
+	public Shield shield;
+	public Powerup powerup;
+	public ArrayList<Projectile> fire;
+	public ArrayList<Shield> shields;
+	public ArrayList<Powerup> powerups;
 	
 	public PlatformState(GameContainer container, StateBasedGame game) {
 		// THIS SPACE INTENTIONALLY LEFT BLANK
@@ -66,6 +85,17 @@ public class PlatformState extends BasicGameState {
 		for (String s : DogWarriors.battleImages) {
 			ResourceManager.loadImage(s);
 		}
+		for (String s : DogWarriors.possumImages) {
+			ResourceManager.loadImage(s);
+		}
+		for (String s : DogWarriors.powerupImages) {
+			ResourceManager.loadImage(s);
+		}
+		
+		this.font1 = new Font("Dialog", Font.BOLD, 36);
+		//this.font2 = new Font("Dialog", Font.BOLD, 20);
+		this.uFont1 = new TrueTypeFont(font1, false);
+		//this.uFont2 = new TrueTypeFont(font2, false);
 
 		this.game = (DogWarriors) game;
 		this.container = container;
@@ -74,28 +104,27 @@ public class PlatformState extends BasicGameState {
 		this.screenHeight = DogWarriors.ScreenHeight;
 		this.screenCenterX = screenWidth / 2;
 		this.screenCenterY = screenHeight / 2;
+		this.catX = 600;
+		this.catY = 30;
 		
 		this.levelOver = false;
 		
 		this.cats = new ArrayList<Cat>(5);
-		this.fire = new ArrayList<Fireball>(5);
-		this.ball = new WaterBall(screenCenterX, screenCenterY);
-		this.shield = new WaterShield(screenCenterX, screenCenterY);
+		this.fire = new ArrayList<Projectile>(5);
+		this.shields = new ArrayList<Shield>(5);
+		this.powerups = new ArrayList<Powerup>(5);
 		this.world = new PlatformWorld();
 		this.back = world.new Background(screenCenterX, screenCenterY);
 		this.spike = new Dog(screenCenterX, screenHeight - 70);
+		this.boss = new Possum(4 * screenWidth / 5, screenHeight - 150);
 
 	}
 
 	@Override
 	public void render(GameContainer container, StateBasedGame game, Graphics g)
 			throws SlickException {
-		
+		//g.setFont(uFont2);
 		back.render(g);
-		g.drawString("HP: " + spike.currentHP + "/" + spike.maxHP, 0, 30);
-		g.drawString("Slobber: " + spike.currentSlobber + "/" + spike.maxSlobber, 0, 50);
-		g.drawString("Current Level: " + spike.level, 0, 70);
-		g.drawString("Exp: " + spike.currentExp + "/" + spike.nextLevel, 0, 90);
 		t1.render(g);
 		t2.render(g);
 		p1.render(g);
@@ -105,50 +134,92 @@ public class PlatformState extends BasicGameState {
 		for(int i = 0; i < cats.size(); i++){
 			ninja = cats.get(i);
 			ninja.render(g);
+			g.drawString("Cat " + i + " HP: " + ninja.currentHP, catX, catY + (20 * i));
 		}
+		boss.render(g);
 		if(spike.shot){
 			spike.shoot.draw(spike.getX() - 24, spike.getY() - 24);
 		}
-		else if(spike.kTime > 0 && !spike.shot){
+		else if(spike.kTime > 0){
 			spike.kick.draw(spike.getX() - 24, spike.getY() - 24);
 		}
-		else if((spike.onGround || spike.onP1 || spike.onP2) && spike.kTime <= 0 && !spike.shot){
+		else if((spike.onGround || spike.onP1 || spike.onP2)){
 			spike.walk.draw(spike.getX() - 24, spike.getY() - 24);
 		}
-		else if(!spike.onGround && !spike.onP1 && !spike.onP2 && spike.kTime <= 0 && !spike.shot){
+		else if(!spike.onGround && !spike.onP1 && !spike.onP2){
 			spike.jump.draw(spike.getX() - 24, spike.getY() - 24);
 		}
+		if(boss.exists){
+			if(boss.shooting){
+				boss.shoot.draw(boss.getX() - 24, boss.getY() - 24);
+			}
+			else if(boss.kicking){
+				boss.kick.draw(boss.getX() - 24, boss.getY() - 30);
+			}
+			else if(boss.onGround || boss.onP1 || boss.onP2){
+				boss.walk.draw(boss.getX() - 24, boss.getY() - 24);
+			}
+			else if(!boss.onGround && !boss.onP1 && !boss.onP2){
+				boss.jump.draw(boss.getX() - 24, boss.getY() - 10);
+			}
+		}
 		for(int i = 0; i < cats.size(); i++){
-			ninja = cats.get(i);
-			if(ninja.dead){
-				ninja.die.draw(ninja.getX() - 24, ninja.getY() - 24);
-			}
-			else if(ninja.canKick && ninja.kTime > 0){
-				ninja.kick.draw(ninja.getX() - 24, ninja.getY() - 24);
-			}
-			else if(ninja.canFire && ninja.sTime > 0){
-				ninja.shoot.draw(ninja.getX() - 24, ninja.getY() - 24);
-			}
-			else if(!ninja.onGround && !ninja.onP1 && !ninja.onP2){
-				ninja.jump.draw(ninja.getX() - 24, ninja.getY() - 24);
-			}
-			else if(ninja.onGround || ninja.onP1 || ninja.onP2){
-				ninja.walk.draw(ninja.getX() - 24, ninja.getY() - 24);
+			if(!boss.exists){
+				ninja = cats.get(i);
+				if(ninja.dead){
+					ninja.die.draw(ninja.getX() - 24, ninja.getY() - 24);
+				}
+				else if(ninja.canKick && ninja.kTime > 0){
+					ninja.kick.draw(ninja.getX() - 24, ninja.getY() - 24);
+				}
+				else if(ninja.canFire && ninja.sTime > 0){
+					ninja.shoot.draw(ninja.getX() - 24, ninja.getY() - 24);
+				}
+				else if(!ninja.onGround && !ninja.onP1 && !ninja.onP2){
+					ninja.jump.draw(ninja.getX() - 24, ninja.getY() - 24);
+				}
+				else if(ninja.onGround || ninja.onP1 || ninja.onP2){
+					ninja.walk.draw(ninja.getX() - 24, ninja.getY() - 24);
+				}
 			}
 		}
 		for(int i = 0; i < fire.size(); i++){
-			fBall = fire.get(i);
-			fBall.render(g);
-			fBall.fire.draw(fBall.getX(), fBall.getY());
-		}
-		if(ball.exists){
+			ball = fire.get(i);
 			ball.render(g);
+			if(ball.type == 0)
+				ball.fire.draw(ball.getX(), ball.getY());
 		}
-		if(shield.exists){
+		for(int i = 0; i < shields.size(); i++){
+			shield = shields.get(i);
 			shield.render(g);
 		}
-		if(fShield.exists){
-			fShield.render(g);
+		for(int i = 0; i < powerups.size(); i++){
+			powerup = powerups.get(i);
+			powerup.render(g);
+		}
+		g.drawString("HP: " + spike.currentHP + "/" + spike.maxHP, 0, 30);
+		g.drawString("Slobber: " + spike.currentSlobber + "/" + spike.maxSlobber, 0, 50);
+		g.drawString("Current Level: " + spike.level, 0, 70);
+		g.drawString("Exp: " + spike.currentExp + "/" + spike.nextLevel, 0, 90);
+		if(boss.exists){
+			g.drawString("Boss HP: " + boss.currentHP, 600, 30);
+		}
+		if(levelOver){
+			if(spike.levelUp){
+				uFont1.drawString(screenCenterX / 3 + 20, screenHeight / 3 + 40, "You have gained a level!", Color.black);
+				uFont1.drawString(screenCenterX / 3 + 50, screenHeight / 3 + 80, "You are now level " + spike.level, Color.black);
+				if(spike.level == 2){
+					g.drawString("You can now kick at your enemies. Hit 'K' to do a spinning kick", screenWidth / 7, screenHeight / 3 + 140);
+				}
+				if(spike.level == 3){
+					g.drawString("You can now shoot slobber balls.", screenWidth / 3, screenHeight / 3 + 140);
+					g.drawString("Hit 'J' to shoot a slobber ball in the direction you're facing", screenWidth / 6, screenHeight / 3 + 160);
+				}
+				if(spike.level == 4){
+					g.drawString("You can now shield yourself with slobber. Hit 'L' to surround yourself with slobber", screenWidth / 7, screenHeight + 140);
+				}
+			}
+			uFont1.drawString(screenCenterX / 2 - 30, screenHeight / 3, "Experience Earned: " + expEarned, Color.black);
 		}
 	}
 
@@ -192,6 +263,13 @@ public class PlatformState extends BasicGameState {
 			spike.onP2 = false;
 		}
 		
+		for(int i = 0; i < powerups.size(); i++){
+			powerup = powerups.get(i);
+			if(powerup.collides(p1) != null || powerup.collides(p2) != null || powerup.collides(g1) != null){
+				powerup.onGround = true;
+				powerup.setVelocity(new Vector(0f, 0f));
+			}
+		}
 		// Cat movement
 		for(int i = 0; i < cats.size(); i++) {
 			ninja = cats.get(i);
@@ -441,13 +519,13 @@ public class PlatformState extends BasicGameState {
 						if(ninja.cooldown <= 0 && (spike.getY() > ninja.getY() + 10 || spike.getY() < ninja.getY() - 10)){
 							if(ninja.speed.getX() < 0 || ninja.shoot == ninja.shootL){
 								ninja.shoot = ninja.shootL;
-								fBall = new Fireball(ninja.getX(), ninja.getY() - 10, -0.3f, 0f, 1);
+								ball = new Projectile(ninja.getX(), ninja.getY() - 10, -0.3f, 0f, 0, 1);
 							}
 							if(ninja.speed.getX() > 0 || ninja.shoot == ninja.shootR){
 								ninja.shoot = ninja.shootR;
-								fBall = new Fireball(ninja.getX(), ninja.getY() - 10, 0.3f, 0f, 0);
+								ball = new Projectile(ninja.getX(), ninja.getY() - 10, 0.3f, 0f, 0, 0);
 							}
-							fire.add(fBall);
+							fire.add(ball);
 							ninja.sTime = 450;
 							ninja.cooldown = 1500;
 							ninja.shoot.restart();
@@ -460,21 +538,18 @@ public class PlatformState extends BasicGameState {
 			
 			//Level 4 AI
 			if(ninja.level == 4 && !ninja.dead) {
-				if(fShield.exists){
-					fShield.setPosition(ninja.getX(), ninja.getY() - 10);
-				}
 				if(ninja.cooldown <= 0 && (spike.getY() < ninja.getY() + 20 || spike.getY() > ninja.getY() - 20)){
 					if((!ninja.canShield && Math.abs(ninja.getX() - spike.getX()) >= 150) ||
 							(ninja.canShield && Math.abs(ninja.getX() - spike.getX()) >= 200)){
 						if(ninja.speed.getX() < 0 || ninja.walk == ninja.walkR){
 							ninja.shoot = ninja.shootR;
-							fBall = new Fireball(ninja.getX(), ninja.getY() - 10, 0.3f, 0f, 0);
+							ball = new Projectile(ninja.getX(), ninja.getY() - 10, 0.3f, 0f, 0, 0);
 						}
 						if(ninja.speed.getX() > 0 || ninja.walk == ninja.walkL){
 							ninja.shoot = ninja.shootL;
-							fBall = new Fireball(ninja.getX(), ninja.getY() - 10, -0.3f, 0f, 1);
+							ball = new Projectile(ninja.getX(), ninja.getY() - 10, -0.3f, 0f, 0, 1);
 						}
-						fire.add(fBall);
+						fire.add(ball);
 						ninja.sTime = 450;
 						ninja.cooldown = 1500;
 						ninja.shoot.restart();
@@ -492,7 +567,7 @@ public class PlatformState extends BasicGameState {
 					}
 					//Attack if close enough and no shield
 					if(Math.abs(ninja.getX() - spike.getX()) <= 150 && ninja.kTime <= 0 
-							&& ninja.cooldown <= 0 && !ninja.canShield && !fShield.exists){
+							&& ninja.cooldown <= 0 && !ninja.canShield){// && !fShield.exists){
 						if(ninja.speed.getX() < 0)
 							ninja.kick = ninja.kickR;
 						if(ninja.speed.getX() > 0)
@@ -509,8 +584,13 @@ public class PlatformState extends BasicGameState {
 					}
 					else if(Math.abs(ninja.getX() - spike.getX()) <= 150 &&
 							ninja.cooldown <= 0 && ninja.canShield){
-						fShield.setPosition(ninja.getX(), ninja.getY() - 10);
-						fShield.exists = true;
+						System.out.println("Fireshield");
+						System.out.println("shields: " + shields.size());
+						shield = new Shield(ninja.getX(), ninja.getY() - 10, 0);
+						shields.add(shield);
+						ninja.shielded = true;
+						System.out.println("Shield added");
+						System.out.println("shields: " + shields.size());
 						ninja.canShield = false;
 						ninja.cooldown = 1000;
 					}
@@ -574,10 +654,107 @@ public class PlatformState extends BasicGameState {
 				
 				else{
 					if(ninja.kTime <= 0){
-						System.out.println("Set speed to 0");
 						ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
 					}
 				}
+			}
+		}
+		
+		//Boss movement
+		if(boss.exists){
+			if(boss.collides(g1) != null && boss.speed.getY() > 0) {
+				boss.setVelocity(new Vector(boss.speed.getX(), 0f));
+				if(!boss.kicking)
+					boss.hitGround();
+				boss.onGround = true;
+			}
+			
+			if (boss.collides(p1) != null && boss.speed.getY() > 0 && 
+					boss.getCoarseGrainedMaxY() >= p1.getY() - 20 &&
+					boss.getCoarseGrainedMaxY() <= p1.getY()) {
+				
+				boss.setVelocity(new Vector(boss.speed.getX(), 0f));
+				if(!boss.kicking)
+					boss.hitGround();
+				boss.onP1 = true;
+			}
+			if(boss.collides(p2) != null && boss.speed.getY() > 0 && 
+					boss.getCoarseGrainedMaxY() >= p2.getY() - 20 &&
+					boss.getCoarseGrainedMaxY() <= p2.getY()) {
+				
+				boss.setVelocity(new Vector(boss.speed.getX(), 0f));
+				if(!boss.kicking)
+					boss.hitGround();
+				boss.onP2 = true;
+			}
+			if(boss.onP1){
+				if(boss.getX() + 20 >= p1.getCoarseGrainedMaxX() || boss.getX() - 10 <= p1.getCoarseGrainedMinX()){
+					boss.onP1 = false;
+					boss.jump();
+				}
+			}
+			if(boss.onP2){
+				if(boss.getX() + 20 >= p2.getCoarseGrainedMaxX() || boss.getX() - 10 <= p2.getCoarseGrainedMinX()){
+					boss.onP2 = false;
+					boss.jump();
+				}
+			}
+			if(boss.kTime <= 0 && boss.kicking){
+				boss.kicking = false;
+				boss.endKick();
+			}
+			if(boss.sTime <= 0 && boss.shooting){
+				boss.shooting = false;
+			}
+			if(boss.getX() >= screenWidth || boss.getX() - 30 <= 0){
+				boss.setVelocity(new Vector(-1 * boss.speed.getX(), boss.speed.getY()));
+				boss.change = true;
+			}
+			if((boss.getX() - spike.getX()) <= 0 && boss.time <= 0 && !boss.shooting){
+				boss.setVelocity(new Vector(0.25f, boss.speed.getY()));
+				if(boss.walk != boss.walkR)
+					boss.change = true;
+			}
+			if((boss.getX() - spike.getX()) > 0 && boss.time <= 0 && !boss.shooting){
+				boss.setVelocity(new Vector(-0.25f, boss.speed.getY()));
+				if(boss.walk != boss.walkL)
+					boss.change = true;
+			}
+			//System.out.println(Math.abs(boss.getY() - spike.getY()));
+			if(Math.abs(boss.getX() - spike.getX()) <= 200 && spike.getY() < boss.getY() && (boss.onGround ||
+					boss.onP1 || boss.onP2)){
+				System.out.println("Jumping");
+				boss.setVelocity(new Vector(boss.speed.getX(), -0.4f));
+				boss.jump();
+			}
+			if(Math.abs(boss.getX() - spike.getX()) <= 150 && boss.cooldown <= 0){
+				System.out.println("Kick");
+				boss.cooldown = 2000;
+				boss.kicking = true;
+				boss.startKick();
+				boss.kTime = 800;
+				if(boss.walk == boss.walkR)
+					boss.kick = boss.kickR;
+				if(boss.walk == boss.walkL)
+					boss.kick = boss.kickL;
+				boss.kick.restart();
+			}
+			if(Math.abs(boss.getX() - spike.getX()) > 200 && boss.cooldown <= 0){
+				System.out.println("Shoot");
+				boss.cooldown = 2500;
+				boss.shooting = true;
+				boss.sTime = 900;
+				boss.setVelocity(new Vector(0f, boss.speed.getY()));
+				if(boss.walk == boss.walkR){
+					boss.shoot = boss.shootR;
+					ball = new Projectile(boss.getX(), boss.getY(), 0.3f, 0f, 2, 0);
+				}
+				if(boss.walk == boss.walkL){
+					boss.shoot = boss.shootL;
+					ball = new Projectile(boss.getX(), boss.getY(), -0.3f, 0f, 2, 1);
+				}
+				fire.add(ball);
+				boss.shoot.restart();
 			}
 		}
 		
@@ -596,6 +773,9 @@ public class PlatformState extends BasicGameState {
 					ninja.dead = true;
 					expEarned += ninja.exp;
 					deadCats++;
+					powerup = new Powerup(ninja.getX(), ninja.getY(), dropPowerup());
+					if(powerup.type != -1)
+						powerups.add(powerup);
 					if(ninja.speed.getX() <= 0){
 						ninja.die = ninja.dieL;
 					}
@@ -610,6 +790,9 @@ public class PlatformState extends BasicGameState {
 					ninja.dead = true;
 					expEarned += ninja.exp;
 					deadCats++;
+					powerup = new Powerup(ninja.getX(), ninja.getY(), dropPowerup());
+					if(powerup.type != -1)
+						powerups.add(powerup);
 				}
 				ninja.hitTime = 300;
 			}
@@ -624,77 +807,195 @@ public class PlatformState extends BasicGameState {
 			if(ninja.dead && ninja.time <= 0){
 				ninja.kill();
 			}
-			if(ball.collides(ninja) != null && ball.exists){
-				//play splash sound
-				ball.exists = false;
-				ball.setPosition(0, 0);
-				ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
-				ninja.currentHP -= spike.spPwr * 1.5;
-				if(ninja.currentHP <= 0 && !ninja.dead){
-					ninja.time = 600;
-					ninja.dead = true;
-					expEarned += ninja.exp;
-					deadCats++;
+			for(int j = 0; j < fire.size(); j++){
+				ball = fire.get(j);
+				if(ball.collides(ninja) != null && ball.type == 1){
+					//play splash sound
+					fire.remove(j);
+					ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
+					ninja.currentHP -= spike.spPwr * 1.5;
+					if(ninja.currentHP <= 0 && !ninja.dead){
+						ninja.time = 600;
+						ninja.dead = true;
+						expEarned += ninja.exp;
+						deadCats++;
+						powerup = new Powerup(ninja.getX(), ninja.getY(), dropPowerup());
+						if(powerup.type != -1)
+							powerups.add(powerup);
+					}
 				}
 			}
-			if(shield.collides(ninja) != null && shield.exists){
-				//play splash sound
-				shield.exists = false;
-				ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
-				ninja.currentHP -= spike.spPwr;
-				if(ninja.currentHP <= 0 && !ninja.dead){
-					ninja.time = 600;
-					ninja.dead = true;
-					expEarned += ninja.exp;
-					deadCats++;
+			for(int j = 0; j < shields.size(); j++){
+				shield = shields.get(j);
+				if(shield.collides(ninja) != null && shield.type == 1){
+					//play splash sound
+					shields.remove(j);
+					ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
+					ninja.currentHP -= spike.spPwr;
+					if(ninja.currentHP <= 0 && !ninja.dead){
+						ninja.time = 600;
+						ninja.dead = true;
+						expEarned += ninja.exp;
+						deadCats++;
+						powerup = new Powerup(ninja.getX(), ninja.getY(), dropPowerup());
+						if(powerup.type != -1)
+							powerups.add(powerup);
+					}
 				}
 			}
 		}
+		if(boss.exists){
+			if(boss.collides(spike) != null && spike.getY() < boss.getY() && !boss.kicking && boss.time <= 0){
+				System.out.println("should be here");
+				boss.currentHP -= spike.attPwr;
+				spike.setVelocity(new Vector(-2 * spike.speed.getX(), -1f * spike.speed.getY()));
+				boss.time = 300;
+				boss.setVelocity(new Vector(0f, boss.speed.getY()));
+				if(boss.currentHP <= 0){
+					boss.exists = false;
+				}
+			}
+			else if(boss.collides(spike) != null && !boss.kicking && boss.time <= 0 && 
+					spike.time <= 0 && !spike.kicking){
+				System.out.println("Shouldn't be here");
+				spike.setVelocity(new Vector(-2 * spike.speed.getX(), -2 * spike.speed.getY()));
+				spike.time = 300;
+				boss.time = 300;
+				spike.currentHP -= boss.attPwr;
+				if(spike.currentHP <= 0){
+					System.out.println("Kill Spike");
+				}
+			}
+			else if(boss.collides(spike) != null && boss.time <= 0 && spike.kicking
+					&& !boss.kicking){
+				spike.setVelocity(new Vector(-2 * spike.speed.getX(), spike.speed.getY()));
+				boss.currentHP -= spike.spPwr;
+				boss.time = 500;
+				if(boss.currentHP <= 0){
+					boss.exists = false;
+				}
+			}
+			else if(boss.collides(spike) != null && boss.kicking && !spike.kicking &&
+					boss.time <= 0 && spike.time <= 0){
+				spike.setVelocity(new Vector(-2 * spike.speed.getX(), -2 * spike.speed.getY()));
+				spike.time = 300;
+				boss.time = 300;
+				spike.currentHP -= (1.5 * boss.attPwr);
+				if(spike.currentHP <= 0){
+					System.out.println("Kill Spike");
+				}
+			}
+			else if(boss.collides(spike) != null && boss.kicking && spike.kicking &&
+					boss.time <= 0 && spike.time <= 0){
+				spike.time = 400;
+				boss.time = 500;
+				spike.setVelocity(new Vector(-2 * spike.speed.getX(), 0f));
+				boss.setVelocity(new Vector(-2 * boss.speed.getX(), 0f));
+			}
+			for(int i = 0; i < fire.size(); i++){
+				ball = fire.get(i);
+				if(ball.type == 1){
+					if(boss.collides(ball) != null){
+						boss.time = 400;
+						fire.remove(i);
+						boss.setVelocity(new Vector(0f, boss.speed.getY()));
+						boss.currentHP -= (1.5 * spike.spPwr);
+						if(boss.currentHP <= 0){
+							boss.exists = false;
+						}
+					}
+				}
+			}
+			for(int i = 0; i < shields.size(); i++){
+				shield = shields.get(i);
+				if(shield.type == 1){
+					if(boss.collides(shield) != null){
+						boss.time = 400;
+						shields.remove(i);
+						boss.setVelocity(new Vector(0f, boss.speed.getY()));
+						boss.currentHP -= (1.5 * spike.spPwr);
+						if(boss.currentHP <= 0){
+							boss.exists = false;
+						}
+					}
+				}
+			}
+			if(spike.getX() < 0 || spike.getX() > screenWidth){
+				boss.currentHP = boss.maxHP;
+				boss.setPosition(4 * screenWidth / 5, screenHeight - 150);
+				boss.jump();
+				game.enterState(DogWarriors.STATES_OVERWORLD, new EmptyTransition(), new RotateTransition());
+			}
+			boss.update(delta);
+		}
 		for(int i = 0; i < fire.size(); i++){
-			fBall = fire.get(i);
-			if(fBall.collides(ball) != null && ball.exists){
-				ball.exists = false;
-				ball.setPosition(0, 0);
-				//play animation and sound
-				fire.remove(i);
+			ball = fire.get(i);
+			for(int j = 0; j < fire.size(); j++){
+				if(i != j){
+					fBall = fire.get(j);
+					if(ball.collides(fBall) != null && ball.type != fBall.type){
+						fire.remove(j);
+						//play animation and sound
+						fire.remove(i);
+					}
+				}
 			}
-			if(fBall.collides(shield) != null && shield.exists){
-				//play animation and sound
-				fire.remove(i);
-				shield.exists = false;
+			for(int j = 0; j < shields.size(); j++){
+				shield = shields.get(j);
+				if(ball.collides(shield) != null && ball.type != shield.type){
+					//play animation and sound
+					fire.remove(i);
+					shields.remove(j);
+				}
 			}
-			if(fBall.collides(spike) != null){
+			if(ball.collides(spike) != null && ball.type != 1){
 				fire.remove(i);
 				spike.currentHP -= 20;
 				//play sound
-				if(fBall.getX() > spike.getX()){
+				if(ball.getX() > spike.getX()){
 					spike.setVelocity(new Vector(-0.1f, spike.speed.getY()));
 					spike.time = 200;
 				}
-				if(fBall.getX() < spike.getX()){
+				if(ball.getX() < spike.getX()){
 					spike.setVelocity(new Vector(0.1f, spike.speed.getY()));
 					spike.time = 200;
 				}
 			}
 		}
-		if(ball.collides(fShield) != null && ball.exists && fShield.exists){
-			ball.exists = false;
-			//play sound and animation
-			ball.setPosition(0, 0);
-			fShield.exists = false;
-			fShield.setPosition(0, 0);
+		for(int i = 0; i < shields.size(); i++){
+			shield = shields.get(i);
+			for(int j = 0; j < shields.size(); j++){
+				if(i != j){
+					Shield fShield = shields.get(j);
+					if(fShield.collides(shield) != null && fShield.type != shield.type){
+						shields.remove(i);
+						shields.remove(j);
+						//play sound and animation
+					}
+				}
+			}
+			if(spike.collides(shield) != null && shield.type != 1){
+				//play sound
+				spike.setVelocity(new Vector(-2 * spike.speed.getX(), -2 * spike.speed.getY()));
+				spike.time = 200;
+				spike.currentHP -= 50;
+			}
 		}
-		if(fShield.collides(shield) != null && shield.exists && fShield.exists){
-			shield.exists = false;
-			fShield.exists = false;
-			fShield.setPosition(0, 0);
-			//play sound and animation
-		}
-		if(spike.collides(fShield) != null && fShield.exists){
-			//play sound
-			spike.setVelocity(new Vector(-2 * spike.speed.getX(), -2 * spike.speed.getY()));
-			spike.time = 200;
-			spike.currentHP -= 50;
+		for(int i = 0; i < powerups.size(); i++){
+			powerup = powerups.get(i);
+			if(spike.collides(powerup) != null){
+				if(powerup.type == 0){
+					spike.currentSlobber = spike.maxSlobber;
+					powerups.remove(i);
+				}
+				if(powerup.type == 1){
+					spike.currentHP += 50;
+					if(spike.currentHP > spike.maxHP)
+						spike.currentHP = spike.maxHP;
+					powerups.remove(i);
+				}
+			}
+			powerup.update(delta);
 		}
 		
 		
@@ -712,28 +1013,42 @@ public class PlatformState extends BasicGameState {
 			}
 			ninja.update(delta);
 		}
+		if(boss.exists && !boss.onGround && !boss.onP1 && !boss.onP2){
+			boss.setVelocity(boss.speed.add(new Vector(0f, 0.01f)));
+		}
+		for(int i = 0; i < powerups.size(); i++){
+			powerup = powerups.get(i);
+			if(!powerup.onGround)
+				powerup.setVelocity(powerup.speed.add(new Vector(0f, 0.01f)));
+		}
 		
 		// Dog special abilities
 		if (spike.kicking && spike.kTime <= 0) {
 			spike.kicking = false;
 			spike.endKick();
 		}
-		
-		if (spike.shot && spike.sTime > 0) {
+		//if(spike.shot && spike.sTime >= 0){
+		if (spike.shot && spike.sTime <= 40 && spike.sTime >= 20) {
 			if(spike.direction == 1) {
-				ball.setPosition(spike.getX() - 30, spike.getY());
+				ball = new Projectile(spike.getX(), spike.getY(), 0f, 0f, 1, 0);
 			}
 			if(spike.direction == 0) {
-				ball.setPosition(spike.getX() + 10, spike.getY());
+				ball = new Projectile(spike.getX() + 10, spike.getY(), 0f, 0f, 1, 0);
 			}
+			fire.add(ball);
 		}
 		if (spike.shot && spike.sTime <= 0) {
 			spike.shot = false;
-			if(spike.direction == 0) {
-				ball.setVelocity(new Vector(0.5f, 0f));
-			}
-			if(spike.direction == 1) {
-				ball.setVelocity(new Vector(-0.5f, 0f));
+			for(int i = 0; i < fire.size(); i++){
+				ball = fire.get(i);
+				if(ball.type == 1){
+					if(spike.shoot == spike.shootR) {
+						ball.setVelocity(new Vector(0.5f, 0f));
+					}
+					if(spike.shoot == spike.shootL) {
+						ball.setVelocity(new Vector(-0.5f, 0f));
+					}
+				}
 			}
 		}
 		for (int i = 0; i < fire.size(); i++) {
@@ -743,14 +1058,20 @@ public class PlatformState extends BasicGameState {
 				fire.remove(i);
 			}
 		}
-		if (shield.exists) {
-			shield.setPosition(spike.getX() - 5, spike.getY());
+		for(int i = 0; i < shields.size(); i++){
+			shield = shields.get(i);
+			if (shield.type == 1) {
+				shield.setPosition(spike.getX() - 5, spike.getY());
+			}
+			for(int j = 0; j < cats.size(); j++){
+				ninja = cats.get(j);
+				if(shield.type == 0 && ninja.shielded){
+					shield.setPosition(ninja.getX(), ninja.getY() - 10);
+				}
+			}
 		}
-		if (ball.exists) {
-			ball.update(delta);
-		}			
 		spike.update(delta);
-		if(cats.size() == deadCats && !levelOver){
+		if(cats.size() == deadCats && !levelOver && !boss.exists){
 			spike.currentExp += expEarned;
 			levelOver = true;
 			System.out.println("Experience earned = " + expEarned);
@@ -760,7 +1081,7 @@ public class PlatformState extends BasicGameState {
 			overTimer -= delta;
 			if(overTimer <= 0){
 				System.out.println("Leave the platform");
-				leave(container, game);
+				game.enterState(DogWarriors.STATES_OVERWORLD, new EmptyTransition(), new RotateTransition());
 			}
 		}
 	}
@@ -784,16 +1105,23 @@ public class PlatformState extends BasicGameState {
 			level = randomLevel();
 			expEarned = 0;
 			deadCats = 0;
-			spike.setPosition(screenCenterX, screenHeight - 100);
 			spike.onGround = false;
 			spike.onP1 = false;
 			spike.onP2 = false;
+			spike.clearShapes();
 			spike.jump();
 			cats.clear();
 			chooseLevel(level);
 			levelOver = false;
-			addCats();
-			overTimer = 8000;
+			spike.levelUp = false;
+			if(!boss.exists){
+				spike.setPosition(screenCenterX, screenHeight - 100);
+				addCats();
+			}
+			else{
+				spike.setPosition(screenWidth / 5, screenHeight - 100);
+			}
+			overTimer = 5000;
 			break;
 		}
 	}
@@ -861,7 +1189,6 @@ public class PlatformState extends BasicGameState {
 			spike.shoot.restart();
 			//play sound
 			spike.shot = true;
-			ball.exists = true;
 			spike.sTime = 800;
 			spike.cooldown = 2000;
 		}
@@ -869,7 +1196,8 @@ public class PlatformState extends BasicGameState {
 		if(input.isKeyPressed(DogWarriors.CONTROLS_SHIELD) && spike.cooldown <= 0 && 
 				spike.level >= 4 && spike.currentSlobber >= 4) {
 			spike.currentSlobber -= 4;
-			shield.exists = true;
+			shield = new Shield(spike.getX() - 5, spike.getY(), 1);
+			shields.add(shield);
 			//play sound
 			spike.cooldown = 1500;
 		}
@@ -903,7 +1231,6 @@ public class PlatformState extends BasicGameState {
 	
 	private void addCats() throws SlickException {
 		int x = numberOfCats();
-		fShield = new FireShield(0, 0);
 		switch(x){
 		case 2:
 			ninja = new Cat(screenWidth / 4, screenHeight - 70, setCatLevel(spike.level));
@@ -1020,6 +1347,24 @@ public class PlatformState extends BasicGameState {
 	}
 	
 	private int jump(){
+		random = new Random();
+		float x = random.nextFloat();
+		if(x >= 0.5)
+			return 0;
+		else
+			return 1;
+	}
+	
+	private int dropPowerup(){
+		random = new Random();
+		float x = random.nextFloat();
+		if(x <= 0.2)
+			return choosePowerup();
+		else
+			return -1;
+	}
+	
+	private int choosePowerup(){
 		random = new Random();
 		float x = random.nextFloat();
 		if(x >= 0.5)

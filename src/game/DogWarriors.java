@@ -58,6 +58,16 @@ public class DogWarriors extends StateBasedGame {
 		rDir + "catWalkRY.png" // 29
 	};
 	
+	public static final String[] possumImages = {
+		rDir + "possumJump.png",
+		rDir + "possumKickL.png",
+		rDir + "possumKickR.png",
+		rDir + "possumShootL.png",
+		rDir + "possumShootR.png",
+		rDir + "possumWalkL.png",
+		rDir + "possumWalkR.png"
+	};
+	
 	public static final String[] dogImages = {
 		rDir + "dogJump.png",
 		rDir + "dogKick.png",
@@ -73,6 +83,13 @@ public class DogWarriors extends StateBasedGame {
 		rDir + "flame.png",
 		rDir + "waterball.png",
 		rDir + "waterShield.png",
+		rDir + "fistL.png",
+		rDir + "fistR.png"
+	};
+	
+	public static final String[] powerupImages = {
+		rDir + "potion.png",
+		rDir + "femur.png"
 	};
 	
 	// Images used in Overworld

@@ -20,6 +20,7 @@ public class Dog extends Entity {
 	public boolean onP1, onP2, onGround; // Maybe just have onPlatform instead of specific platforms.
 	public boolean change; // Boolean value to indicate a change of direction
 	public boolean shot, kicking; // True if this Dog is executing these abilities
+	public boolean levelUp; // True if Dog levels up
 	public int kTime, sTime; // Ability timers
 	public int cooldown; // Time before another ability can be used
 	public int time; // Timer to remove player ability to move after a hit
@@ -46,7 +47,7 @@ public class Dog extends Entity {
 		this.nextLevel = 250;
 		this.maxHP = 100;
 		this.currentHP = maxHP;
-		this.maxSlobber = 2;
+		this.maxSlobber = 20;
 		this.currentSlobber = maxSlobber;
 		this.slobberRegen = 5000;
 		this.attPwr = 50;
@@ -54,6 +55,7 @@ public class Dog extends Entity {
 		this.sTime = 0;
 		this.cooldown = 0;
 		this.kTime = 0;
+		this.levelUp = false;
 		this.change = false;
 		this.shot = false;
 		this.onP1 = false;
@@ -63,8 +65,7 @@ public class Dog extends Entity {
 		this.normal = new ConvexPolygon(17f, 42f);
 		this.inAir = new ConvexPolygon(17, 30);
 		this.leg = new ConvexPolygon(40f, 8f);
-		this.addShape(new ConvexPolygon(1, 30), new Vector(0f, 0f), Color.black, Color.black);
-		this.addShape(inAir, new Vector(0f, 5f), null, Color.black);
+		//this.addShape(inAir, new Vector(0f, 5f), null, Color.black);
 		this.bestowAbilities();
 	}
 	
@@ -114,6 +115,11 @@ public class Dog extends Entity {
 			jump();
 		}
 	}
+	public void clearShapes(){
+		this.removeShape(leg);
+		this.removeShape(normal);
+		this.removeShape(inAir);
+	}
 	
 	public void setVelocity(final Vector v) {
 		speed = v;
@@ -134,6 +140,7 @@ public class Dog extends Entity {
 			this.currentSlobber = this.maxSlobber;
 			this.attPwr += 25;
 			this.spPwr += 25;
+			this.levelUp = true;
 		}
 	}
 	
