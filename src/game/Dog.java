@@ -20,6 +20,7 @@ public class Dog extends Entity {
 	public boolean onP1, onP2, onGround; // Maybe just have onPlatform instead of specific platforms.
 	public boolean change; // Boolean value to indicate a change of direction
 	public boolean shot, kicking; // True if this Dog is executing these abilities
+	public boolean levelUp; // True if Dog levels up
 	public int kTime, sTime; // Ability timers
 	public int cooldown; // Time before another ability can be used
 	public int time; // Timer to remove player ability to move after a hit
@@ -54,6 +55,7 @@ public class Dog extends Entity {
 		this.sTime = 0;
 		this.cooldown = 0;
 		this.kTime = 0;
+		this.levelUp = false;
 		this.change = false;
 		this.shot = false;
 		this.onP1 = false;
@@ -138,6 +140,7 @@ public class Dog extends Entity {
 			this.currentSlobber = this.maxSlobber;
 			this.attPwr += 25;
 			this.spPwr += 25;
+			this.levelUp = true;
 		}
 	}
 	

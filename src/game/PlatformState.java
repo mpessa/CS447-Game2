@@ -14,6 +14,7 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.TrueTypeFont;
 import org.newdawn.slick.UnicodeFont;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
@@ -23,7 +24,7 @@ import org.newdawn.slick.state.transition.RotateTransition;
 
 /**
  * State for the combat portion. Player character has various abilities based on it's
- * level and encounter enemies with similar abilities based on their levels. State 
+ * level and encounters enemies with similar abilities based on their levels. State 
  * exits once all enemy entities are killed or once the player character is killed.
  * 
  * @author Matthew Pessa
@@ -43,7 +44,7 @@ public class PlatformState extends BasicGameState {
 	private int level, expEarned, deadCats, overTimer;
 	
 	private Font font1, font2;
-	private UnicodeFont uFont1, uFont2;
+	private TrueTypeFont uFont1, uFont2;
 	
 	private boolean levelOver;
 	
@@ -91,10 +92,10 @@ public class PlatformState extends BasicGameState {
 			ResourceManager.loadImage(s);
 		}
 		
-		this.font1 = new Font("Arial Bold", Font.BOLD, 36);
-		this.font2 = new Font("Arial Bold", Font.BOLD, 20);
-		this.uFont1 = new UnicodeFont(font1, font1.getSize(), font1.isBold(), font1.isItalic());
-		this.uFont2 = new UnicodeFont(font2, font2.getSize(), font2.isBold(), font2.isItalic());
+		this.font1 = new Font("Dialog", Font.BOLD, 36);
+		//this.font2 = new Font("Dialog", Font.BOLD, 20);
+		this.uFont1 = new TrueTypeFont(font1, false);
+		//this.uFont2 = new TrueTypeFont(font2, false);
 
 		this.game = (DogWarriors) game;
 		this.container = container;
@@ -202,6 +203,23 @@ public class PlatformState extends BasicGameState {
 		g.drawString("Exp: " + spike.currentExp + "/" + spike.nextLevel, 0, 90);
 		if(boss.exists){
 			g.drawString("Boss HP: " + boss.currentHP, 600, 30);
+		}
+		if(levelOver){
+			if(spike.levelUp){
+				uFont1.drawString(screenCenterX / 3 + 20, screenHeight / 3 + 40, "You have gained a level!", Color.black);
+				uFont1.drawString(screenCenterX / 3 + 50, screenHeight / 3 + 80, "You are now level " + spike.level, Color.black);
+				if(spike.level == 2){
+					g.drawString("You can now kick at your enemies. Hit 'K' to do a spinning kick", screenWidth / 7, screenHeight / 3 + 140);
+				}
+				if(spike.level == 3){
+					g.drawString("You can now shoot slobber balls.", screenWidth / 3, screenHeight / 3 + 140);
+					g.drawString("Hit 'J' to shoot a slobber ball in the direction you're facing", screenWidth / 6, screenHeight / 3 + 160);
+				}
+				if(spike.level == 4){
+					g.drawString("You can now shield yourself with slobber. Hit 'L' to surround yourself with slobber", screenWidth / 7, screenHeight + 140);
+				}
+			}
+			uFont1.drawString(screenCenterX / 2 - 30, screenHeight / 3, "Experience Earned: " + expEarned, Color.black);
 		}
 	}
 
@@ -1095,6 +1113,7 @@ public class PlatformState extends BasicGameState {
 			cats.clear();
 			chooseLevel(level);
 			levelOver = false;
+			spike.levelUp = false;
 			if(!boss.exists){
 				spike.setPosition(screenCenterX, screenHeight - 100);
 				addCats();
