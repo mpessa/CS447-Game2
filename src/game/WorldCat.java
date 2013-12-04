@@ -13,6 +13,8 @@ import java.util.Random;
 
 public class WorldCat extends Entity {
 	public Point NW, NE, SW, SE;
+	public boolean exists = true;
+	
 	private float dampingFactor = 0.25f; // dog slows down due to friction
 	private float defaultAcceleration = 0.2f;
 	private float acceleration; // amount this dog moves per update
@@ -35,8 +37,6 @@ public class WorldCat extends Entity {
 		this.velocity = new Vector(0.0f, 0.0f);
 		this.reset = this.velocity;
 		this.initialize();
-		
-		
 	}
 	
 	public WorldCat(final Vector v) {

@@ -101,7 +101,9 @@ public class DogWarriors extends StateBasedGame {
 		rDir + "tower300x100.png",
 		rDir + "tower300x200.png",
 		rDir + "wood_tileset_3.png",
-		rDir + "tree.png"
+		rDir + "tree.png",
+		rDir + "worldDogWalkL.png",
+		rDir + "worldDogWalkR.png"
 	};
 	
 	public static final String[] wallImages = {
@@ -152,6 +154,8 @@ public class DogWarriors extends StateBasedGame {
 	public static final String worldControls = "CONTROLS:\n"
 			+ "WASD - Move Spike\n"
 			+ "P - Pause the game\n"
+			+ "M - Toggle minimap display\n"
+			+ "1 - Enter a cat battle"
 			+ "ESC - Quit the game\n";
 	
 	public static final String platformControls = "CONTROLS:\n"
@@ -160,6 +164,7 @@ public class DogWarriors extends StateBasedGame {
 			+ "J - Shoot\n"
 			+ "K - Kick\n"
 			+ "L - Deploy Slime Shield\n"
+			+ "1 - Instantly leave battle\n"
 			+ "ESC - Quit the game\n";
 	
 	// Controls Mapping

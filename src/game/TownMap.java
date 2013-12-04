@@ -22,7 +22,7 @@ public class TownMap {
 	
 	 // "dormant" data to be expanded by OverworldState loading the map.
 	public Integer[][] tiledata = new Integer[TownMap.HEIGHT][TownMap.WIDTH];
-	public boolean enemiesCleared = false; // True if all enemies have been cleared from this Map.
+	public int enemiesRemaining = 0; // True if all enemies have been cleared from this Map.
 	public boolean itemGotten = false; // True if this room's 'Treasure' has been looted
 	public boolean highwayEW = false; // Maps along coordinate axes are not dead ends.
 	public boolean highwayNS = false;
@@ -41,7 +41,6 @@ public class TownMap {
 	public int worldY = 0;
 	
 	// Special points in the current world (in tile coordinates)
-	public ArrayList<Vector> catSpawns; // spawn-points of CAT "Combative-Action Trigger" Objects
 	public Vector dogSpawn; // spawn point of the dog
 	
 	/**
@@ -57,7 +56,6 @@ public class TownMap {
 	 */
 	public TownMap(int north, int east, int south, int west,
 				   boolean roads, int veg, int buildings, int cats) {
-		catSpawns = new ArrayList<Vector>();
 		dogSpawn = new Vector((int) (TownMap.WIDTH / 2), (int) (TownMap.HEIGHT / 2));
 		
 		generateBase();
@@ -76,11 +74,11 @@ public class TownMap {
 		for (int i = 0; i < veg; i++) {
 			generateVeg();
 		}
-		for (int i = 0; i <= buildings; i++) {
+		for (int i = 0; i < buildings; i++) {
 			//generateBuilding();
 		}
-		for (int i = 0; i <= cats; i++) {
-			//catSpawns.add(generateCat());
+		for (int i = 0; i < cats; i++) {
+			generateCat();
 		}
 	}
 	
@@ -159,6 +157,12 @@ public class TownMap {
 		}
 	}
 	
+	/**
+	 * Connects the two points on the map with a West-East road
+	 * @param x1
+	 * @param x2
+	 * @param y
+	 */
 	private void WERoad(int x1, int x2, int y) {
 		for (int i = x1; i <= x2; i++) {
 			tiledata[y][i] = TownTile.ROAD;
@@ -265,11 +269,18 @@ public class TownMap {
 	}
 	
 	/**
-	 * Generate a "cat spawning" location
-	 * @return
+	 * Generate a "cat spawning" location.
 	 */
-	private Vector generateCat() {
-		Vector c = new Vector(0.0f, 0.0f);
-		return c;
+	private void generateCat() {
+		int tries = 16;
+		while (tries > 0) {
+			int x = 1 + (int) (Math.random() * (TownMap.WIDTH - 2));
+			int y = 1 + (int) (Math.random() * (TownMap.HEIGHT - 2));
+			if (tiledata[y][x] == TownTile.GRASS) {
+				tiledata[y][x] = TownTile.CAT_GRASS;
+				enemiesRemaining++;
+				break;
+			}
+		}
 	}
 }

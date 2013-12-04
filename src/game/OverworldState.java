@@ -2,6 +2,7 @@ package game;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Random;
 
 import jig.Collision;
@@ -64,7 +65,6 @@ public class OverworldState extends BasicGameState {
 	
 	// Objects in the current world
 	private WorldDog dog; // player character sprite
-	private WorldCat cat;
 	private ArrayList<WorldCat> cats;
 	private ArrayList<TownTile> grassTiles;
 	private ArrayList<TownTile> roadTiles;
@@ -75,8 +75,10 @@ public class OverworldState extends BasicGameState {
 	//private ArrayList<Powerup> powerups;
 	private ArrayList<TownTile> shrubs; // drawn above Spike
 	
+	// cat-related
 	private Random rand;
-	private boolean hit = false;
+	private WorldCat catHit = null; // the cat we hit to get to the platform state
+	private Vector catVelocity = new Vector(0.2f, 0.0f);
 	
 	private int frontierX = 0;
 	private int frontierY = 0;
@@ -133,7 +135,6 @@ public class OverworldState extends BasicGameState {
 		this.shrubs = new ArrayList<TownTile>();
 		
 		this.rand = new Random();
-        this.hit = false;
 		
 		TownMap m = new TownMap(14, 14, 14, 14, true, 0, 0, 0);
 		m.highwayEW = true;
@@ -145,9 +146,6 @@ public class OverworldState extends BasicGameState {
 		
 		this.changeLevel(0, 0);
 		this.dog = new WorldDog(currentMap.dogSpawn.scale(TownMap.TILESIZE));
-		WorldCat c = new WorldCat(250, 250);
-        c.setVelocity(new Vector(.0f, .2f));
-        cats.add(c);
 	}
 
 	@Override
@@ -178,8 +176,18 @@ public class OverworldState extends BasicGameState {
 		}
 		
 		dog.translate(-1.0f *offsetX, -1.0f *offsetY);
-		dog.render(g);
+		dog.walk.draw(dog.getX() - 12, dog.getY() - 13);
 		dog.translate(offsetX, offsetY);
+		
+		for (WorldCat c : this.cats) {
+        	//if(c.isOnscreen(screen)){
+        		numRenders++;
+        		c.translate(-1*offsetX, -1*offsetY);
+        		c.render(g);
+        		c.translate(offsetX, offsetY);
+        		
+        	//}
+        }
 		
 		for (TownTile s : this.shrubs) {
 			if (s.isOnscreen(screen)) {
@@ -195,16 +203,6 @@ public class OverworldState extends BasicGameState {
 			}
 		}
 		
-		for (WorldCat c : this.cats) {
-        	//if(c.isOnscreen(screen)){
-        		numRenders++;
-        		c.translate(-1*offsetX, -1*offsetY);
-        		c.render(g);
-        		c.translate(offsetX, offsetY);
-        		
-        	//}
-        }
-		
 		g.drawString("Number of Renders: " + numRenders, 10, 30);
 		g.drawString("Number of Collision Detections: " + numCDs, 10, 50);
 		
@@ -214,6 +212,7 @@ public class OverworldState extends BasicGameState {
 		
 		g.drawString("Map Coordinates: " + realX + ", " + realY, 10, 70);
 		g.drawString("Maps Generated: " + numMaps, 10, 90);
+		g.drawString("Number of Cats: " + cats.size(), 10, 110);
 		
 		if (mapDisplay) drawMinimap(g, flash);
 	}
@@ -240,13 +239,23 @@ public class OverworldState extends BasicGameState {
 		// Collision Detection
 		numCDs = 0;
 		
-		for (WorldCat cat : this.cats) {
+		for (WorldCat cat : this.cats) { // cats vs. dog
+			if (cat.exists == false) continue;
 			numCDs ++;
         	Collision d = cat.collides(dog);
         	if (d != null) {
+        		this.catHit = cat;
         		game.enterState(DogWarriors.STATES_PLATFORM, new EmptyTransition(), new RotateTransition());
         	}    	
         }
+		
+		// remove dead cats
+		for (Iterator<WorldCat> i = cats.iterator(); i.hasNext();) {
+			if (!i.next().exists) {
+				i.remove();
+				currentMap.enemiesRemaining --;
+			}
+		}
 		
 		processWallCollisions();
 		processCatCollisions();
@@ -277,6 +286,7 @@ public class OverworldState extends BasicGameState {
 		case(2): // the game is returning from transition (To Be Defined)
 			break;
 		case(4): // the game is returning from platform world
+			if (this.catHit != null) this.catHit.exists = false;
 			break;
 		}
 	}
@@ -337,7 +347,9 @@ public class OverworldState extends BasicGameState {
 		if (generateShrubs == 1) {
 			shrubs = (int) (Math.random() * 100);
 		}
-		t = new TownMap(n, e, s, w, true, shrubs, 0, 0);
+		
+		int cats = 2 + (int) (Math.random() * numMaps / 6);
+		t = new TownMap(n, e, s, w, true, shrubs, 0, cats);
 		numMaps ++;
 		return t;
 	}
@@ -480,6 +492,7 @@ public class OverworldState extends BasicGameState {
 		}
 		mapIndexX = destX;
 		mapIndexY = destY;
+		int catsToGenerate = currentMap.enemiesRemaining;
 		// generate objects
 		for (int i = 0; i < TownMap.HEIGHT; i++) {
 			for (int j = 0; j < TownMap.WIDTH; j++) {
@@ -511,8 +524,19 @@ public class OverworldState extends BasicGameState {
 					roadTiles.add(new TownTile(p, TownTile.ROAD, img));
 					break;
 				case (TownTile.SHRUB):
+					img = (int) (Math.random()*DogWarriors.grassImages.length);
 					grassTiles.add(new TownTile(p, TownTile.GRASS, img));
 					walls.add(new TownTile(p, TownTile.SHRUB, 7));
+					break;
+				case (TownTile.CAT_GRASS):
+					img = (int) (Math.random()*DogWarriors.grassImages.length);
+					grassTiles.add(new TownTile(p, TownTile.GRASS, img));
+					if (catsToGenerate > 0) {
+						WorldCat c = new WorldCat(p);
+						c.setVelocity(this.catVelocity);
+						cats.add(c);
+						catsToGenerate --;
+					}
 					break;
 				}
 			}
@@ -576,10 +600,22 @@ public class OverworldState extends BasicGameState {
 	private void processKeyInput(Input input) {
 		if (input.isKeyDown(DogWarriors.CONTROLS_RIGHT)) {
 			dog.setVelocity(dog.getVelocity().add(new Vector(dog.getAcceleration(), 0.0f)));
+			if (dog.direction == 1) {
+				dog.change = true;
+			}
+			dog.walk.start();
 		}
 		
 		if (input.isKeyDown(DogWarriors.CONTROLS_LEFT)) {
 			dog.setVelocity(dog.getVelocity().add(new Vector(-1.0f*dog.getAcceleration(), 0.0f)));
+			if (dog.direction == 0) {
+				dog.change = true;
+			}
+			dog.walk.start();
+		}
+		
+		if (!input.isKeyDown(DogWarriors.CONTROLS_RIGHT) && !input.isKeyDown(DogWarriors.CONTROLS_LEFT)) {
+			dog.walk.stop();
 		}
 		
 		if (input.isKeyDown(DogWarriors.CONTROLS_DOWN)) {
@@ -698,40 +734,48 @@ public class OverworldState extends BasicGameState {
 	
 	private void processCatCollisions() {
 		for (WorldCat cat : this.cats) {
+			numCDs++;
         	for (TownTile w : walls) {
-        		Collision catCollide = cat.collides(w);
-        		//randomX = rand.nextInt(90) - 10;
-        		//randomY = rand.nextInt(10);
-        		if (w.collides(cat) != null) {
-        			Vector p = catCollide.getMinPenetration();
-        			//System.out.println("We have a collision");
-        			//System.out.println("The coordinates are x: " + w.getX() + " y: " + w.getY());
-        			//Cat has made contact with right wall
-        			if (p.getX() < 0) {
-        				cat.setX(cat.getX() - 5);
-        				cat.bounce(80);
-        				//System.out.println("The coordinates are x: " + w.getX() + " y: " + w.getY());
-        			}
-        			//cat has made contact with left wall
-        			else if (p.getX() > 0) {
-        				cat.setX(cat.getX() + 5);
-        				cat.bounce(80);
-        				//System.out.println("The coordinates are x: " + w.getX() + " y: " + w.getY());
-        			}
-        			//cat has made contact with bottom of screen
-        			else if (p.getY()  < 0) {
-        				cat.setY(cat.getY() - 5);
-        				cat.bounce(10);
-        				//System.out.println("The coordinates are x: " + w.getX() + " y: " + w.getY());
-        			}
-        			//cat has top of screen
-        			else if (p.getY()  > 0) {
-        				cat.setY(cat.getY() + 5);
-        				cat.bounce(10);
-        				//System.out.println("The coordinates are x: " + w.getX() + " y: " + w.getY());
-        			}
-        		}
+        		bounceCat(cat, w);
         	}
-        }
+        	for (TownTile e : exitTiles) {
+        		bounceCat(cat, e);
+        	}
+		}
+	}
+	
+	private void bounceCat(WorldCat cat, TownTile w) {
+		Collision catCollide = cat.collides(w);
+		//randomX = rand.nextInt(90) - 10;
+		//randomY = rand.nextInt(10);
+		if (w.collides(cat) != null) {
+			Vector p = catCollide.getMinPenetration();
+			//System.out.println("We have a collision");
+			//System.out.println("The coordinates are x: " + w.getX() + " y: " + w.getY());
+			//Cat has made contact with right wall
+			if (p.getX() < 0) {
+				cat.setX(cat.getX() - 5);
+				cat.bounce(80);
+				//System.out.println("The coordinates are x: " + w.getX() + " y: " + w.getY());
+			}
+			//cat has made contact with left wall
+			else if (p.getX() > 0) {
+				cat.setX(cat.getX() + 5);
+				cat.bounce(80);
+				//System.out.println("The coordinates are x: " + w.getX() + " y: " + w.getY());
+			}
+			//cat has made contact with bottom of screen
+			else if (p.getY()  < 0) {
+				cat.setY(cat.getY() - 5);
+				cat.bounce(10);
+				//System.out.println("The coordinates are x: " + w.getX() + " y: " + w.getY());
+			}
+			//cat has top of screen
+			else if (p.getY()  > 0) {
+				cat.setY(cat.getY() + 5);
+				cat.bounce(10);
+				//System.out.println("The coordinates are x: " + w.getX() + " y: " + w.getY());
+			}
+		}
 	}
 }
