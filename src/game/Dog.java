@@ -41,7 +41,7 @@ public class Dog extends Entity {
 		super(x, y);
 		this.speed = new Vector(0f, 0f);
 		this.direction = 1;
-		this.level = 4;
+		this.level = 1;
 		this.currentExp = 0;
 		this.nextLevel = 250;
 		this.maxHP = 100;

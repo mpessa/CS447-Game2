@@ -53,7 +53,7 @@ public class Possum extends Entity{
 		this.facing = true;
 		this.kicking = false;
 		this.shooting = false;
-		this.exists = true;
+		this.exists = false;
 		this.dead = false;
 		this.speed = new Vector(0f, 0f);
 		this.normal = new ConvexPolygon(38f, 58f);

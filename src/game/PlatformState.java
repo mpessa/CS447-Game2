@@ -60,8 +60,10 @@ public class PlatformState extends BasicGameState {
 	
 	public Projectile ball, fBall;
 	public Shield shield;
+	public Powerup powerup;
 	public ArrayList<Projectile> fire;
 	public ArrayList<Shield> shields;
+	public ArrayList<Powerup> powerups;
 	
 	public PlatformState(GameContainer container, StateBasedGame game) {
 		// THIS SPACE INTENTIONALLY LEFT BLANK
@@ -85,6 +87,9 @@ public class PlatformState extends BasicGameState {
 		for (String s : DogWarriors.possumImages) {
 			ResourceManager.loadImage(s);
 		}
+		for (String s : DogWarriors.powerupImages) {
+			ResourceManager.loadImage(s);
+		}
 		
 		this.font1 = new Font("Arial Bold", Font.BOLD, 36);
 		this.font2 = new Font("Arial Bold", Font.BOLD, 20);
@@ -106,6 +111,7 @@ public class PlatformState extends BasicGameState {
 		this.cats = new ArrayList<Cat>(5);
 		this.fire = new ArrayList<Projectile>(5);
 		this.shields = new ArrayList<Shield>(5);
+		this.powerups = new ArrayList<Powerup>(5);
 		this.world = new PlatformWorld();
 		this.back = world.new Background(screenCenterX, screenCenterY);
 		this.spike = new Dog(screenCenterX, screenHeight - 70);
@@ -186,6 +192,10 @@ public class PlatformState extends BasicGameState {
 			shield = shields.get(i);
 			shield.render(g);
 		}
+		for(int i = 0; i < powerups.size(); i++){
+			powerup = powerups.get(i);
+			powerup.render(g);
+		}
 		g.drawString("HP: " + spike.currentHP + "/" + spike.maxHP, 0, 30);
 		g.drawString("Slobber: " + spike.currentSlobber + "/" + spike.maxSlobber, 0, 50);
 		g.drawString("Current Level: " + spike.level, 0, 70);
@@ -235,6 +245,13 @@ public class PlatformState extends BasicGameState {
 			spike.onP2 = false;
 		}
 		
+		for(int i = 0; i < powerups.size(); i++){
+			powerup = powerups.get(i);
+			if(powerup.collides(p1) != null || powerup.collides(p2) != null || powerup.collides(g1) != null){
+				powerup.onGround = true;
+				powerup.setVelocity(new Vector(0f, 0f));
+			}
+		}
 		// Cat movement
 		for(int i = 0; i < cats.size(); i++) {
 			ninja = cats.get(i);
@@ -738,6 +755,9 @@ public class PlatformState extends BasicGameState {
 					ninja.dead = true;
 					expEarned += ninja.exp;
 					deadCats++;
+					powerup = new Powerup(ninja.getX(), ninja.getY(), dropPowerup());
+					if(powerup.type != -1)
+						powerups.add(powerup);
 					if(ninja.speed.getX() <= 0){
 						ninja.die = ninja.dieL;
 					}
@@ -752,6 +772,9 @@ public class PlatformState extends BasicGameState {
 					ninja.dead = true;
 					expEarned += ninja.exp;
 					deadCats++;
+					powerup = new Powerup(ninja.getX(), ninja.getY(), dropPowerup());
+					if(powerup.type != -1)
+						powerups.add(powerup);
 				}
 				ninja.hitTime = 300;
 			}
@@ -778,6 +801,9 @@ public class PlatformState extends BasicGameState {
 						ninja.dead = true;
 						expEarned += ninja.exp;
 						deadCats++;
+						powerup = new Powerup(ninja.getX(), ninja.getY(), dropPowerup());
+						if(powerup.type != -1)
+							powerups.add(powerup);
 					}
 				}
 			}
@@ -793,6 +819,9 @@ public class PlatformState extends BasicGameState {
 						ninja.dead = true;
 						expEarned += ninja.exp;
 						deadCats++;
+						powerup = new Powerup(ninja.getX(), ninja.getY(), dropPowerup());
+						if(powerup.type != -1)
+							powerups.add(powerup);
 					}
 				}
 			}
@@ -934,6 +963,22 @@ public class PlatformState extends BasicGameState {
 				spike.currentHP -= 50;
 			}
 		}
+		for(int i = 0; i < powerups.size(); i++){
+			powerup = powerups.get(i);
+			if(spike.collides(powerup) != null){
+				if(powerup.type == 0){
+					spike.currentSlobber = spike.maxSlobber;
+					powerups.remove(i);
+				}
+				if(powerup.type == 1){
+					spike.currentHP += 50;
+					if(spike.currentHP > spike.maxHP)
+						spike.currentHP = spike.maxHP;
+					powerups.remove(i);
+				}
+			}
+			powerup.update(delta);
+		}
 		
 		
 		//Gravity for cats and dog
@@ -952,6 +997,11 @@ public class PlatformState extends BasicGameState {
 		}
 		if(boss.exists && !boss.onGround && !boss.onP1 && !boss.onP2){
 			boss.setVelocity(boss.speed.add(new Vector(0f, 0.01f)));
+		}
+		for(int i = 0; i < powerups.size(); i++){
+			powerup = powerups.get(i);
+			if(!powerup.onGround)
+				powerup.setVelocity(powerup.speed.add(new Vector(0f, 0.01f)));
 		}
 		
 		// Dog special abilities
@@ -1278,6 +1328,24 @@ public class PlatformState extends BasicGameState {
 	}
 	
 	private int jump(){
+		random = new Random();
+		float x = random.nextFloat();
+		if(x >= 0.5)
+			return 0;
+		else
+			return 1;
+	}
+	
+	private int dropPowerup(){
+		random = new Random();
+		float x = random.nextFloat();
+		if(x <= 0.2)
+			return choosePowerup();
+		else
+			return -1;
+	}
+	
+	private int choosePowerup(){
 		random = new Random();
 		float x = random.nextFloat();
 		if(x >= 0.5)

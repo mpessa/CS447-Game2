@@ -87,6 +87,11 @@ public class DogWarriors extends StateBasedGame {
 		rDir + "fistR.png"
 	};
 	
+	public static final String[] powerupImages = {
+		rDir + "potion.png",
+		rDir + "femur.png"
+	};
+	
 	// Images used in Overworld
 	public static final String[] worldImages = {
 		rDir + "worldDog.png",
