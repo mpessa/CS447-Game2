@@ -157,6 +157,7 @@ public class DogWarriors extends StateBasedGame {
 	public static final int CONTROLS_CHEAT_1 = Input.KEY_1;
 	public static final int CONTROLS_QUIT = Input.KEY_ESCAPE;
 	public static final int CONTROLS_START = Input.KEY_RETURN;
+	public static final int CONTROLS_MAP = Input.KEY_M;
 	
 	// States Mapping
 	public static final int STATES_STARTUP = 0;

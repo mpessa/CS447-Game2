@@ -80,7 +80,7 @@ public class TownTile extends Entity {
 			break;
 		case (TownTile.EXIT_GRASS):
 			this.addImage(ResourceManager.getImage(DogWarriors.grassImages[index]));
-			this.addShape(new ConvexPolygon(16.0f));
+			this.addShape(new ConvexPolygon(16.0f, 16.0f));
 			break;
 		case (TownTile.ROAD):
 			this.addImage(ResourceManager.getImage(DogWarriors.roadImages[index]));
@@ -88,6 +88,7 @@ public class TownTile extends Entity {
 		case (TownTile.SHRUB):
 			this.addImage(ResourceManager.getImage(DogWarriors.worldImages[index]), 
 					new Vector(0.0f, -16.0f));
+			this.addShape(new ConvexPolygon(16.0f, 16.0f));
 			break;
 		}
 	}

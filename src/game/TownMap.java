@@ -213,12 +213,12 @@ public class TownMap {
 				if (north > e) WERoad(e, north, n);
 			}
 			if (exitEast) {
-				WERoad(e, TownMap.WIDTH-1, east);
+				WERoad(e, TownMap.WIDTH-2, east);
 				if (east < n) NSRoad(e, east, n);
 				if (east > s) NSRoad(e, s, east);
 			}
 			if (exitSouth) {
-				NSRoad(south, s, TownMap.HEIGHT-1);
+				NSRoad(south, s, TownMap.HEIGHT-2);
 				if (south < w) WERoad(south, w, s);
 				if (south > e) WERoad(e, south, s);
 			}

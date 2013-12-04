@@ -73,6 +73,12 @@ public class OverworldState extends BasicGameState {
 	private int frontierX = 0;
 	private int frontierY = 0;
 	
+	// minimap-related
+	private boolean mapDisplay = false;
+	private boolean flash = false;
+	private int flashTimer = 0;
+	private int flashPeriod = 25;
+	
 	public OverworldState(GameContainer container, StateBasedGame game) {
 		// THIS SPACE INTENTIONALLY LEFT BLANK
 	}
@@ -121,8 +127,6 @@ public class OverworldState extends BasicGameState {
 		ArrayList<TownMap> col0 = new ArrayList<TownMap>();
 		col0.add(m);
 		mapList.add(col0);
-		//incrementFrontier(2, 0);
-		//incrementFrontier(0, 2);
 		this.numMaps = 1;
 		
 		this.changeLevel(0, 0);
@@ -177,13 +181,25 @@ public class OverworldState extends BasicGameState {
 		
 		g.drawString("Number of Renders: " + numRenders, 10, 30);
 		g.drawString("Number of Collision Detections: " + numCDs, 10, 50);
-		g.drawString("Map Coordinates: " + mapIndexX + ", " + mapIndexY, 10, 70);
-		g.drawString("Frontiers: " + frontierX + ", " + frontierY, 10, 90);
+		
+		Vector realCoords = computeRealCoords(mapIndexX, mapIndexY);
+		int realX = (int) realCoords.getX();
+		int realY = (int) realCoords.getY();
+		
+		g.drawString("Map Coordinates: " + realX + ", " + realY, 10, 70);
+		g.drawString("Maps Generated: " + numMaps, 10, 90);
+		
+		if (mapDisplay) drawMinimap(g, flash);
 	}
 
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
+		flashTimer ++;
+		if (flashTimer >= flashPeriod) {
+			flash = !flash;
+			flashTimer = 0;
+		}
 		
 		// Input
 		Input input = container.getInput();
@@ -238,10 +254,11 @@ public class OverworldState extends BasicGameState {
 	 */
 	private TownMap generateMap(int destX, int destY) {
 		TownMap t = null;
+		int wallFactor = 25;
 		int n, e, s, w;
 		int start = TownMap.EXIT_WIDTH + 1;
-		int rangeX = TownMap.WIDTH - start;
-		int rangeY = TownMap.HEIGHT - start;
+		int rangeX = TownMap.WIDTH - start + wallFactor;
+		int rangeY = TownMap.HEIGHT - start + wallFactor;
 		// get north border from south border of mapList[destX][destY-2]
 		TownMap b = getNeighbor(destX, destY, 0);
 		if (b != null) n = b.exitSlocation;
@@ -282,7 +299,79 @@ public class OverworldState extends BasicGameState {
 			shrubs = (int) (Math.random() * 100);
 		}
 		t = new TownMap(n, e, s, w, true, shrubs, 0, 0);
+		numMaps ++;
 		return t;
+	}
+	
+	private void drawMinimap(Graphics g, boolean flash) {
+		for (int i = 0; i <= frontierX; i++) {
+			for (int j = 0; j <= frontierY; j++) {
+				TownMap m = mapList.get(i).get(j);
+				if (m == null) continue;
+				Vector r = computeRealCoords(i, j);
+				int rX = (int) r.getX();
+				int rY = (int) r.getY();
+				int point = 0x0020; // space
+				if ((i == mapIndexX && j == mapIndexY) && (flash)) {
+					point = 0x0040;
+				} else {
+					if (m.exitNorth) {
+						//point = 0x2575; // north
+						point = 0x006F;
+						if (m.exitEast) {
+							//point = 0x2514; // north and east
+							point = 0x004C;
+							if (m.exitWest) {
+								//point = 0x2534; // north and east and west
+								point = 0x005E;
+								if (m.exitSouth) {
+									//point = 0x253C; // north and east and west and south
+									point = 0x002B;
+								}
+							} else if (m.exitSouth) {
+								//point = 0x251C; // north and east and south
+								point = 0x007D;
+							}
+						} else if (m.exitWest) {
+							//point = 0x2518; // north and west
+							point = 0x004A;
+							if (m.exitSouth) {
+								//point = 0x2524; // north and west and south
+								point = 0x007B;
+							}
+						} else if (m.exitSouth) {
+							//point = 0x2502; // north and south
+							point = 0x007C;
+						}
+					} else if (m.exitEast) {
+						//point = 0x2576; // east
+						point = 0x006F;
+						if (m.exitWest) {
+							//point = 0x2500; // east and west
+							point = 0x002D;
+							if (m.exitSouth) {
+								//point = 0x252C; // east and west and south
+								point = 0x0076;
+							}
+						} else if (m.exitSouth) {
+							//point = 0x250C; // east and south
+							point = 0x0072;
+						}
+					} else if (m.exitWest) {
+						//point = 0x2574; // west
+						point = 0x006F;
+						if (m.exitSouth) {
+							//point = 0x2510; // west and south
+							point = 0x0037;
+						}
+					} else if (m.exitSouth) {
+						//point = 0x2577; // south
+						point = 0x006F;
+					}
+				}
+				g.drawString(Character.toString((char) point), screenHalfWidth + 10 * rX, screenHalfHeight + 200 + 12 * rY);
+			}
+		}
 	}
 	
 	private TownMap getNeighbor(int x, int y, int dir) {
@@ -391,6 +480,19 @@ public class OverworldState extends BasicGameState {
 		}
 	}
 	
+	private Vector computeRealCoords(int x, int y) {
+		Vector v = new Vector(0, 0);
+		if (x % 2 == 0) { v = v.setX(x / 2); }
+		else {
+			v = v.setX(-1 * ((x + 1) / 2));
+		}
+		if (y % 2 == 0) { v = v.setY(y / 2); }
+		else {
+			v = v.setY(-1 * ((y + 1) / 2));
+		}
+		return v;
+	}
+	
 	/**
 	 * Add "padding" to the map world structure to allow new maps to be generated and set.
 	 * @param xAmount
@@ -457,8 +559,12 @@ public class OverworldState extends BasicGameState {
 			game.enterState(DogWarriors.STATES_PAUSED, new EmptyTransition(), new HorizontalSplitTransition());
 		}
 		
-		if(input.isKeyPressed(DogWarriors.CONTROLS_QUIT)) { // return to the startup state
+		if (input.isKeyPressed(DogWarriors.CONTROLS_QUIT)) { // return to the startup state
 			game.enterState(DogWarriors.STATES_STARTUP, new EmptyTransition(), new HorizontalSplitTransition());
+		}
+		
+		if (input.isKeyPressed(DogWarriors.CONTROLS_MAP)) {
+			mapDisplay = !mapDisplay;
 		}
 	}
 	
