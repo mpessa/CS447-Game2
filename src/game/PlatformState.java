@@ -91,6 +91,13 @@ public class PlatformState extends BasicGameState {
 		for (String s : DogWarriors.powerupImages) {
 			ResourceManager.loadImage(s);
 		}
+		for  (String s : DogWarriors.platformCatSounds){
+			ResourceManager.loadSound(s);
+		}
+		for (String s : DogWarriors.platformSplashSound){
+			ResourceManager.loadSound(s);
+		}
+		
 		
 		this.font1 = new Font("Dialog", Font.BOLD, 36);
 		//this.font2 = new Font("Dialog", Font.BOLD, 20);
@@ -763,7 +770,7 @@ public class PlatformState extends BasicGameState {
 			ninja = cats.get(i);
 			if(spike.collides(ninja) != null && ninja.hitTime <= 0 &&
 				spike.getCoarseGrainedMaxY() < ninja.getY() - 10 && spike.speed.getY() >= 0 && !ninja.dead) {
-				//play cat hurt sound
+				ResourceManager.getSound(DogWarriors.platformCatSounds[0]).play();
 				spike.setVelocity(spike.speed.negate());
 				ninja.setVelocity(new Vector(0f, 0f));
 				ninja.currentHP -= spike.attPwr;
@@ -782,7 +789,7 @@ public class PlatformState extends BasicGameState {
 				}
 			}
 			else if(spike.collides(ninja) != null && ninja.hitTime <= 0 && spike.kTime > 0){
-				//play cat hurt sound
+				ResourceManager.getSound(DogWarriors.platformCatSounds[1]).play();
 				ninja.setVelocity(new Vector(0f, 0f));
 				ninja.currentHP -= spike.spPwr;
 				if(ninja.currentHP <= 0 && !ninja.dead){
@@ -810,7 +817,7 @@ public class PlatformState extends BasicGameState {
 			for(int j = 0; j < fire.size(); j++){
 				ball = fire.get(j);
 				if(ball.collides(ninja) != null && ball.type == 1){
-					//play splash sound
+					ResourceManager.getSound(DogWarriors.platformSplashSound[0]).play();
 					fire.remove(j);
 					ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
 					ninja.currentHP -= spike.spPwr * 1.5;
@@ -828,7 +835,7 @@ public class PlatformState extends BasicGameState {
 			for(int j = 0; j < shields.size(); j++){
 				shield = shields.get(j);
 				if(shield.collides(ninja) != null && shield.type == 1){
-					//play splash sound
+					ResourceManager.getSound(DogWarriors.platformSplashSound[0]).play();
 					shields.remove(j);
 					ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
 					ninja.currentHP -= spike.spPwr;

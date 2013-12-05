@@ -15,3 +15,4 @@
 [7] Implement leveling system
 [10] Create smooth transitions between levels and maps
 [11] Create cat AI for platform world
+[12] Create sounds for platform world

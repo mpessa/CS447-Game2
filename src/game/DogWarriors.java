@@ -19,6 +19,13 @@ import org.newdawn.slick.state.StateBasedGame;
  * @author Matthew Pessa
  * @author Mitchel Pulley
  */
+
+/**
+ * Resources
+ * Splash sound provided by: Michel Baradari at http://opengameart.org/content/lava-splash
+ * 
+ *
+ */
 public class DogWarriors extends StateBasedGame {
 
 	// Location of game resources
@@ -133,6 +140,17 @@ public class DogWarriors extends StateBasedGame {
 		rDir + "dirt0.png",
 		rDir + "dirt1.png",
 		rDir + "dirt2.png"
+	};
+	
+	public static final String[] platformCatSounds = {
+		rDir + "angry.wav",
+		rDir + "Cry.wav",
+		rDir + "Meow1.wav",
+		rDir + "Meow2.wav"
+	};
+	
+	public static final String[] platformSplashSound = {
+		rDir + "splash.wav"
 	};
 	
 	// Sounds
