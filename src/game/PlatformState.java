@@ -2,6 +2,7 @@
 package game;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Random;
 
 import java.awt.Font;
@@ -65,6 +66,7 @@ public class PlatformState extends BasicGameState {
 	public ArrayList<Projectile> fire;
 	public ArrayList<Shield> shields;
 	public ArrayList<Powerup> powerups;
+	public ArrayList<Bang> explode;
 	
 	public PlatformState(GameContainer container, StateBasedGame game) {
 		// THIS SPACE INTENTIONALLY LEFT BLANK
@@ -91,10 +93,25 @@ public class PlatformState extends BasicGameState {
 		for (String s : DogWarriors.powerupImages) {
 			ResourceManager.loadImage(s);
 		}
+		for (String s : DogWarriors.explosionImage) {
+			ResourceManager.loadImage(s);
+		}
 		for  (String s : DogWarriors.platformCatSounds){
 			ResourceManager.loadSound(s);
 		}
 		for (String s : DogWarriors.platformSplashSound){
+			ResourceManager.loadSound(s);
+		}
+		for (String s : DogWarriors.platformDogHitSound){
+			ResourceManager.loadSound(s);
+		}
+		for (String s : DogWarriors.platformBoomSound){
+			ResourceManager.loadSound(s);
+		}
+		for (String s : DogWarriors.platformDogKick){
+			ResourceManager.loadSound(s);
+		}
+		for (String s : DogWarriors.platformExplosion){
 			ResourceManager.loadSound(s);
 		}
 		
@@ -120,6 +137,7 @@ public class PlatformState extends BasicGameState {
 		this.fire = new ArrayList<Projectile>(5);
 		this.shields = new ArrayList<Shield>(5);
 		this.powerups = new ArrayList<Powerup>(5);
+		this.explode = new ArrayList<Bang>(10);
 		this.world = new PlatformWorld();
 		this.back = world.new Background(screenCenterX, screenCenterY);
 		this.spike = new Dog(screenCenterX, screenHeight - 70);
@@ -228,6 +246,8 @@ public class PlatformState extends BasicGameState {
 			}
 			uFont1.drawString(screenCenterX / 2 - 30, screenHeight / 3, "Experience Earned: " + expEarned, Color.black);
 		}
+		for (Bang b : explode)
+			b.render(g);
 	}
 
 	@Override
@@ -804,7 +824,7 @@ public class PlatformState extends BasicGameState {
 				ninja.hitTime = 300;
 			}
 			else if(spike.collides(ninja) != null && ninja.hitTime <= 0){
-				//play spike hurt sound
+				ResourceManager.getSound(DogWarriors.platformDogHitSound[0]).play();
 				spike.setVelocity(new Vector(0f, 0f));
 				spike.currentHP -= ninja.attPwr;
 				ninja.hitTime = 300;
@@ -942,7 +962,7 @@ public class PlatformState extends BasicGameState {
 					fBall = fire.get(j);
 					if(ball.collides(fBall) != null && ball.type != fBall.type){
 						fire.remove(j);
-						//play animation and sound
+						explode.add(new Bang(fBall.getX(), fBall.getY()));// adding explosion
 						fire.remove(i);
 					}
 				}
@@ -950,7 +970,7 @@ public class PlatformState extends BasicGameState {
 			for(int j = 0; j < shields.size(); j++){
 				shield = shields.get(j);
 				if(ball.collides(shield) != null && ball.type != shield.type){
-					//play animation and sound
+					explode.add(new Bang(shield.getX(), shield.getY()));// adding explosion
 					fire.remove(i);
 					shields.remove(j);
 				}
@@ -958,7 +978,7 @@ public class PlatformState extends BasicGameState {
 			if(ball.collides(spike) != null && ball.type != 1){
 				fire.remove(i);
 				spike.currentHP -= 20;
-				//play sound
+				ResourceManager.getSound(DogWarriors.platformBoomSound[0]).play();
 				if(ball.getX() > spike.getX()){
 					spike.setVelocity(new Vector(-0.1f, spike.speed.getY()));
 					spike.time = 200;
@@ -977,12 +997,12 @@ public class PlatformState extends BasicGameState {
 					if(fShield.collides(shield) != null && fShield.type != shield.type){
 						shields.remove(i);
 						shields.remove(j);
-						//play sound and animation
+						explode.add(new Bang(shield.getX(), shield.getY()));// adding explosion
 					}
 				}
 			}
 			if(spike.collides(shield) != null && shield.type != 1){
-				//play sound
+				ResourceManager.getSound(DogWarriors.platformBoomSound[1]).play();
 				spike.setVelocity(new Vector(-2 * spike.speed.getX(), -2 * spike.speed.getY()));
 				spike.time = 200;
 				spike.currentHP -= 50;
@@ -1091,6 +1111,12 @@ public class PlatformState extends BasicGameState {
 				game.enterState(DogWarriors.STATES_OVERWORLD, new EmptyTransition(), new RotateTransition());
 			}
 		}
+		
+		for (Iterator<Bang> i = explode.iterator(); i.hasNext();) {
+			if (!i.next().isActive()) {
+				i.remove();
+			}
+		}
 	}
 
 	@Override
@@ -1178,7 +1204,7 @@ public class PlatformState extends BasicGameState {
 			spike.currentSlobber -= 1;
 			spike.kick.restart();
 			spike.startKick();
-			//play sound
+			ResourceManager.getSound(DogWarriors.platformDogKick[0]).play();
 			spike.kicking = true;
 			spike.kTime = 1000;
 			spike.cooldown = 1500;
@@ -1194,7 +1220,7 @@ public class PlatformState extends BasicGameState {
 				spike.shoot = spike.shootL;
 			}
 			spike.shoot.restart();
-			//play sound
+			ResourceManager.getSound(DogWarriors.platformSplashSound[0]).play();
 			spike.shot = true;
 			spike.sTime = 800;
 			spike.cooldown = 2000;
@@ -1205,7 +1231,7 @@ public class PlatformState extends BasicGameState {
 			spike.currentSlobber -= 4;
 			shield = new Shield(spike.getX() - 5, spike.getY(), 1);
 			shields.add(shield);
-			//play sound
+			ResourceManager.getSound(DogWarriors.platformSplashSound[0]).play();
 			spike.cooldown = 1500;
 		}
 		

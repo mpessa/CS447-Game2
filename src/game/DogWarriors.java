@@ -23,7 +23,8 @@ import org.newdawn.slick.state.StateBasedGame;
 /**
  * Resources
  * Splash sound provided by: Michel Baradari at http://opengameart.org/content/lava-splash
- * 
+ * Boom sound provided by: dKlon http://opengameart.org/content/atari-booms
+ * Kick sound for dog provided by: kddekadenz http://opengameart.org/content/break-pumpkin
  *
  */
 public class DogWarriors extends StateBasedGame {
@@ -99,6 +100,10 @@ public class DogWarriors extends StateBasedGame {
 		rDir + "femur.png"
 	};
 	
+	public static final String[] explosionImage = {
+		rDir + "explosion.png"
+	};
+	
 	// Images used in Overworld
 	public static final String[] worldImages = {
 		rDir + "worldDog.png",
@@ -142,6 +147,9 @@ public class DogWarriors extends StateBasedGame {
 		rDir + "dirt2.png"
 	};
 	
+	
+	
+	// Sounds
 	public static final String[] platformCatSounds = {
 		rDir + "angry.wav",
 		rDir + "Cry.wav",
@@ -153,13 +161,29 @@ public class DogWarriors extends StateBasedGame {
 		rDir + "splash.wav"
 	};
 	
-	// Sounds
-	// There are no sounds yet. :(
+	public static final String[] platformDogHitSound = {
+		rDir + "ouch.wav"
+	};
+	
+	public static final String[] platformBoomSound = {
+		rDir + "atari_boom.wav",
+		rDir + "atari_boom2.wav"
+	};
+	
+	public static final String[] platformExplosion = {
+		rDir + "explosion.wav"
+	};
+	
+	public static final String[] platformDogKick = {
+		rDir + "pumpkin_break_01_0.wav"
+	};
 	
 	// Overworld Level Data
 	public static final String[] worldLevels = {
 		rDir + "demo.tmx"
 	};
+	
+	
 	
 	// Text
 	public static final String authors = "BY:\n"
