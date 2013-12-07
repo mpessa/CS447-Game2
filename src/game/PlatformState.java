@@ -853,6 +853,8 @@ public class PlatformState extends BasicGameState {
 				boss.setVelocity(new Vector(0f, boss.speed.getY()));
 				if(boss.currentHP <= 0){
 					boss.exists = false;
+					powerup = new Powerup(boss.getX(), boss.getY(), 2);
+					powerups.add(powerup);
 				}
 			}
 			else if(boss.collides(spike) != null && !boss.kicking && boss.time <= 0 && 
@@ -873,6 +875,8 @@ public class PlatformState extends BasicGameState {
 				boss.time = 500;
 				if(boss.currentHP <= 0){
 					boss.exists = false;
+					powerup = new Powerup(boss.getX(), boss.getY(), 2);
+					powerups.add(powerup);
 				}
 			}
 			else if(boss.collides(spike) != null && boss.kicking && !spike.kicking &&
@@ -902,6 +906,8 @@ public class PlatformState extends BasicGameState {
 						boss.currentHP -= (1.5 * spike.spPwr);
 						if(boss.currentHP <= 0){
 							boss.exists = false;
+							powerup = new Powerup(boss.getX(), boss.getY(), 2);
+							powerups.add(powerup);
 						}
 					}
 				}
@@ -993,6 +999,9 @@ public class PlatformState extends BasicGameState {
 					if(spike.currentHP > spike.maxHP)
 						spike.currentHP = spike.maxHP;
 					powerups.remove(i);
+				}
+				if(powerup.type == 2){
+					// End the game
 				}
 			}
 			powerup.update(delta);

@@ -37,6 +37,10 @@ public class Powerup extends Entity{
 			this.addImage(ResourceManager.getImage(DogWarriors.powerupImages[1]));
 			this.addShape(new ConvexPolygon(50f, 12f), new Vector(0f, 0f), null, Color.black);
 		}
+		if(type == 2){ // Chewtoy to end the game
+			this.addImage(ResourceManager.getImage(DogWarriors.powerupImages[2]));
+			this.addShape(new ConvexPolygon(50f, 12f), new Vector(0f, 0f));
+		}
 	}
 	
 	public void setVelocity(Vector v){
