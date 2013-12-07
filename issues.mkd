@@ -1,7 +1,5 @@
 ## Open Issues ##
 
-[8] Create boss entity
-[9] Create powerups and chew toys
 [12] Create cat AI for world map
 
 ## Closed Issues ##

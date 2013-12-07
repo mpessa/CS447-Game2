@@ -97,7 +97,8 @@ public class DogWarriors extends StateBasedGame {
 	
 	public static final String[] powerupImages = {
 		rDir + "potion.png",
-		rDir + "femur.png"
+		rDir + "femur.png",
+		rDir + "goldBone.png"
 	};
 	
 	public static final String[] explosionImage = {
