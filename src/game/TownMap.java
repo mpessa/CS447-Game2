@@ -244,19 +244,27 @@ public class TownMap {
 		while (tries > 0) {
 			int x = 1 + (int) (Math.random() * (TownMap.WIDTH - 2));
 			int y = 1 + (int) (Math.random() * (TownMap.HEIGHT - 2));
-			double n = Math.random();
-			double e = Math.random();
-			double s = Math.random();
-			double w = Math.random();
-			if (tiledata[y][x] == TownTile.GRASS) {
-				float prob = 0.2f;
-				if (tiledata[y+1][x] == TownTile.ROAD) break;
-				tiledata[y][x] = TownTile.SHRUB;
-				if (n < prob && (tiledata[y+1][x] == TownTile.GRASS)) tiledata[y+1][x] = TownTile.SHRUB;
-				if (e < prob && (tiledata[y-1][x] == TownTile.GRASS)) tiledata[y-1][x] = TownTile.SHRUB;
-				if (w < prob && (tiledata[y][x+1] == TownTile.GRASS)) tiledata[y][x+1] = TownTile.SHRUB;
-				if (s < prob && (tiledata[y][x-1] == TownTile.GRASS)) tiledata[y][x-1] = TownTile.SHRUB;
-				break;
+			double p = Math.random();
+			float prob = 0.05f;
+			if (tiledata[y+1][x] == TownTile.ROAD) break;
+			if (tiledata[y+1][x] == TownTile.SHRUB) prob += 0.20f;
+			if (tiledata[y-1][x] == TownTile.SHRUB) prob += 0.20f;
+			if (tiledata[y][x+1] == TownTile.SHRUB) prob += 0.20f;
+			if (tiledata[y][x-1] == TownTile.SHRUB) prob += 0.20f;
+			if (p < prob) {
+				if (tiledata[y][x] == TownTile.GRASS) {
+					tiledata[y][x] = TownTile.SHRUB;
+					double n = Math.random();
+					double e = Math.random();
+					double s = Math.random();
+					double w = Math.random();
+					float nprob = 0.8f;
+					if (n < nprob && (tiledata[y+1][x] == TownTile.GRASS)) tiledata[y+1][x] = TownTile.SHRUB;
+					if (e < nprob && (tiledata[y-1][x] == TownTile.GRASS)) tiledata[y-1][x] = TownTile.SHRUB;
+					if (w < nprob && (tiledata[y][x+1] == TownTile.GRASS)) tiledata[y][x+1] = TownTile.SHRUB;
+					if (s < nprob && (tiledata[y][x-1] == TownTile.GRASS)) tiledata[y][x-1] = TownTile.SHRUB;
+					break;
+				}
 			}
 		}
 	}

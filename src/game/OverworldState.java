@@ -87,7 +87,7 @@ public class OverworldState extends BasicGameState {
 	private boolean mapDisplay = false;
 	private boolean flash = false;
 	private int flashTimer = 0;
-	private int flashPeriod = 25;
+	private final int flashPeriod = 25;
 	
 	public OverworldState(GameContainer container, StateBasedGame game) {
 		// THIS SPACE INTENTIONALLY LEFT BLANK
@@ -135,17 +135,6 @@ public class OverworldState extends BasicGameState {
 		this.shrubs = new ArrayList<TownTile>();
 		
 		this.rand = new Random();
-		
-		TownMap m = new TownMap(14, 14, 14, 14, true, 0, 0, 0);
-		m.highwayEW = true;
-		m.highwayNS = true;
-		ArrayList<TownMap> col0 = new ArrayList<TownMap>();
-		col0.add(m);
-		mapList.add(col0);
-		this.numMaps = 1;
-		
-		this.changeLevel(0, 0);
-		this.dog = new WorldDog(currentMap.dogSpawn.scale(TownMap.TILESIZE));
 	}
 
 	@Override
@@ -246,7 +235,15 @@ public class OverworldState extends BasicGameState {
         	if (d != null) {
         		this.catHit = cat;
         		game.enterState(DogWarriors.STATES_PLATFORM, new EmptyTransition(), new RotateTransition());
-        	}    	
+        	} else {
+        		if (dog.isNear(cat, cat.sightRange)) {
+        			Vector catToDog = new Vector(dog.getPosition().subtract(cat.getPosition()));
+        			float s = cat.sightFactor;
+        			s = s * (float) (Math.random()) * (cat.sightFactor);
+        			catToDog = catToDog.scale(s);
+        			cat.setVelocity(cat.getVelocity().add(catToDog).clampLength(0.0f, cat.getMaxSpeed()));
+        		}
+        	}
         }
 		
 		// remove dead cats
@@ -280,6 +277,40 @@ public class OverworldState extends BasicGameState {
 		container.getInput().clearKeyPressedRecord();
 		switch((((DogWarriors) game).getPrevState())) {
 		case(0): // the game is starting, and we need a new game
+			for (ArrayList<TownMap> a : this.mapList) {
+				a.clear();
+			}
+			this.mapList.clear();
+			this.numMaps = 0;
+			this.numCDs = 0;
+			this.numRenders = 0;
+			this.mapIndexX = 0;
+			this.mapIndexY = 0;
+			this.frontierX = 0;
+			this.frontierY = 0;
+			this.buildings.clear();
+			this.walls.clear();
+			this.cats.clear();
+			this.exitTiles.clear();
+			this.grassTiles.clear();
+			this.shrubs.clear();
+			this.roadTiles.clear();
+			this.mapDisplay = false;
+			this.flash = false;
+			this.flashTimer = 0;
+			
+			
+			TownMap m = new TownMap(14, 14, 14, 14, true, 0, 0, 0);
+			m.highwayEW = true;
+			m.highwayNS = true;
+			ArrayList<TownMap> col0 = new ArrayList<TownMap>();
+			col0.add(m);
+			mapList.add(col0);
+			this.numMaps = 1;
+			
+			this.changeLevel(0, 0);
+			this.dog = new WorldDog(currentMap.dogSpawn.scale(TownMap.TILESIZE));
+			
 			break;
 		case(1): // the game was un-paused, and we should do nothing
 			break;
@@ -649,7 +680,7 @@ public class OverworldState extends BasicGameState {
 	private void processWallCollisions() {
 		// dog vs. wall collisions
 		for (TownTile w : walls) {
-			if (!(dog.isNear(w))) continue; // ignore walls that are too far away to collide.
+			if (!(dog.isNear(w, TownMap.TILESIZE * 2.0f))) continue; // ignore walls that are too far away to collide.
 			numCDs ++;
 			Collision c = dog.collides(w);
 			if (c != null) {
@@ -685,7 +716,7 @@ public class OverworldState extends BasicGameState {
 	 */
 	private void processExitCollisions() {
 		for (TownTile e : exitTiles) {
-			if (!(dog.isNear(e))) continue; // ignore exits that are too far away to collide.
+			if (!(dog.isNear(e, TownMap.TILESIZE * 2.0f))) continue; // ignore exits that are too far away to collide.
 			numCDs ++;
 			Collision c = dog.collides(e);
 			if (c != null) {

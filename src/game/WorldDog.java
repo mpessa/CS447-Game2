@@ -108,9 +108,8 @@ public class WorldDog extends Entity{
 	 * @param other
 	 * @return true if the other Entity is close enough to the Dog for a collision to possibly happen
 	 */
-	public boolean isNear(Entity other) {
+	public boolean isNear(Entity other, float r) {
 		boolean near = false;
-		float r = TownMap.TILESIZE * 2.0f;
 		if (other.getPosition().distance(this.getPosition()) <= r) near = true;
 		return near;
 	}
