@@ -69,7 +69,7 @@ public class Cat extends Entity{
 		this.drop = 0;
 		this.normal = new ConvexPolygon(15f, 42f);
 		
-		this.addShape(normal, new Vector(-8f, -3f), null, Color.black);
+		this.addShape(normal, new Vector(-8f, -3f));
 		this.bestowAbilities(level);
 	}
 	

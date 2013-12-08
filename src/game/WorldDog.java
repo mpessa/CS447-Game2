@@ -5,6 +5,7 @@ import java.awt.Rectangle;
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.SpriteSheet;
 
+import jig.ConvexPolygon;
 import jig.Entity;
 import jig.ResourceManager;
 import jig.Vector;
@@ -21,7 +22,7 @@ public class WorldDog extends Entity{
 	private float dampingFactor = 0.25f; // dog slows down due to friction
 	private float defaultAcceleration = 0.2f;
 	private float acceleration; // amount this dog moves per update
-	private float maxSpeed = 0.5f;
+	private float maxSpeed = 0.25f;
 	public boolean change;
 	public Vector velocity;
 	public int switchTimerA, switchTimerW, switchTimerS, switchTimerD;
@@ -56,10 +57,10 @@ public class WorldDog extends Entity{
 		this.switchTimerD = 200;
 		this.direction = 1;
 		this.change = false;
-		//this.moveDog();
+		this.moveDog();
 		this.velocity = new Vector(0.0f, 0.0f);
 		this.setAcceleration(defaultAcceleration);
-		this.addImageWithBoundingBox(ResourceManager.getImage(DogWarriors.worldImages[0]));	
+		this.addShape(new ConvexPolygon(32f, 32f));
 	}
 	
 	public void setVelocity(final Vector v){
@@ -95,8 +96,8 @@ public class WorldDog extends Entity{
 	}
 	
 	public void moveDog(){
-		this.walkingR = new SpriteSheet(ResourceManager.getImage(DogWarriors.dogImages[5]), 25, 32);
-		this.walkingL = new SpriteSheet(ResourceManager.getImage(DogWarriors.dogImages[4]), 25, 32);		
+		this.walkingR = new SpriteSheet(ResourceManager.getImage(DogWarriors.worldImages[9]), 27, 32);
+		this.walkingL = new SpriteSheet(ResourceManager.getImage(DogWarriors.worldImages[8]), 27, 32);		
 		this.walkR = new Animation(walkingR, 150);
 		this.walkL = new Animation(walkingL, 150);
 		this.walk = walkR;
@@ -107,9 +108,8 @@ public class WorldDog extends Entity{
 	 * @param other
 	 * @return true if the other Entity is close enough to the Dog for a collision to possibly happen
 	 */
-	public boolean isNear(Entity other) {
+	public boolean isNear(Entity other, float r) {
 		boolean near = false;
-		float r = TownMap.TILESIZE * 2.0f;
 		if (other.getPosition().distance(this.getPosition()) <= r) near = true;
 		return near;
 	}
