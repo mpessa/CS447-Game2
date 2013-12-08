@@ -784,7 +784,7 @@ public class PlatformState extends BasicGameState {
 			else if(spike.collides(ninja) != null && ninja.hitTime <= 0 && spike.kTime > 0){
 				//play cat hurt sound
 				ninja.setVelocity(new Vector(0f, 0f));
-				ninja.currentHP -= spike.spPwr;
+				ninja.currentHP -= (0.5f * spike.spPwr);
 				if(ninja.currentHP <= 0 && !ninja.dead){
 					ninja.time = 600;
 					ninja.dead = true;
@@ -974,7 +974,7 @@ public class PlatformState extends BasicGameState {
 					}
 				}
 			}
-			if(spike.collides(shield) != null && shield.type != 1){
+			if(spike.collides(shield) != null && shield.type != 1 && spike.time <= 0){
 				//play sound
 				spike.setVelocity(new Vector(-2 * spike.speed.getX(), -2 * spike.speed.getY()));
 				spike.time = 200;

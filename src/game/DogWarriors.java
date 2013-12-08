@@ -155,7 +155,7 @@ public class DogWarriors extends StateBasedGame {
 			+ "WASD - Move Spike\n"
 			+ "P - Pause the game\n"
 			+ "M - Toggle minimap display\n"
-			+ "1 - Enter a cat battle"
+			+ "1 - Enter a cat battle\n"
 			+ "ESC - Quit the game\n";
 	
 	public static final String platformControls = "CONTROLS:\n"

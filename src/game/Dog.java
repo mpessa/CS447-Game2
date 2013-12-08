@@ -91,20 +91,20 @@ public class Dog extends Entity {
 	}
 	
 	public void hitGround() {
-		this.addShape(normal, new Vector(-7f, -3f), null, Color.black);
+		this.addShape(normal, new Vector(-7f, -3f));
 		this.removeShape(inAir);
 	}
 	
 	public void jump() {
-		this.addShape(inAir, new Vector(0f, 5f), null, Color.black);
+		this.addShape(inAir, new Vector(0f, 5f));
 		this.removeShape(normal);
 	}
 	
 	public void startKick() {
-		this.addShape(leg, new Vector(0f, 8f), null, Color.black);
+		this.addShape(leg, new Vector(0f, 8f));
 		if (!onGround && !onP1 && !onP2) {
 			this.removeShape(inAir);
-			this.addShape(normal, new Vector(-7f, -3f), null, Color.black);
+			this.addShape(normal, new Vector(-7f, -3f));
 		}
 	}
 	
