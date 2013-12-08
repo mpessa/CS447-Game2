@@ -2,7 +2,7 @@
 
 [8] Create boss entity
 [9] Create powerups and chew toys
-[12] Create cat AI for world map
+[13] Add more features to world map generation
 
 ## Closed Issues ##
 
@@ -15,3 +15,4 @@
 [7] Implement leveling system
 [10] Create smooth transitions between levels and maps
 [11] Create cat AI for platform world
+[12] Create cat AI for world map
