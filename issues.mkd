@@ -1,6 +1,6 @@
 ## Open Issues ##
 
-[12] Create cat AI for world map
+[14] Add more features to world map generation
 
 ## Closed Issues ##
 

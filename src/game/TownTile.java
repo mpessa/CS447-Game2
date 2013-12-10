@@ -27,6 +27,7 @@ public class TownTile extends Entity {
 	public static final int WALL = 6;
 	public static final int EXIT_ROAD = 7;
 	public static final int EXIT_GRASS = 8;
+	public static final int CAT_GRASS = 9;
 	// Types 32-63 reserved for different building anchor types?
 	
 	public Point NW, NE, SW, SE; // Corners of this Tile
@@ -89,6 +90,9 @@ public class TownTile extends Entity {
 			this.addImage(ResourceManager.getImage(DogWarriors.worldImages[index]), 
 					new Vector(0.0f, -16.0f));
 			this.addShape(new ConvexPolygon(16.0f, 16.0f));
+			break;
+		case (TownTile.CAT_GRASS):
+			this.addImage(ResourceManager.getImage(DogWarriors.grassImages[index]));
 			break;
 		}
 	}

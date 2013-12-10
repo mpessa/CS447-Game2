@@ -811,7 +811,7 @@ public class PlatformState extends BasicGameState {
 			else if(spike.collides(ninja) != null && ninja.hitTime <= 0 && spike.kTime > 0){
 				ResourceManager.getSound(DogWarriors.platformCatSounds[1]).play();
 				ninja.setVelocity(new Vector(0f, 0f));
-				ninja.currentHP -= spike.spPwr;
+				ninja.currentHP -= (0.5f * spike.spPwr);
 				if(ninja.currentHP <= 0 && !ninja.dead){
 					ninja.time = 600;
 					ninja.dead = true;
