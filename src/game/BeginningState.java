@@ -16,6 +16,12 @@ import org.newdawn.slick.state.transition.EmptyTransition;
 import org.newdawn.slick.state.transition.RotateTransition;
 import org.newdawn.slick.state.transition.VerticalSplitTransition;
 
+/**
+ * State with a beginning cut scene to add info about the basic game concept.
+ * 
+ * @author Matthew Pessa
+ *
+ */
 public class BeginningState extends BasicGameState {
 
 	DogWarriors game; // game we are a state of

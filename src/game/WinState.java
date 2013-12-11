@@ -14,7 +14,12 @@ import org.newdawn.slick.state.transition.EmptyTransition;
 import org.newdawn.slick.state.transition.RotateTransition;
 import org.newdawn.slick.state.transition.VerticalSplitTransition;
 
-
+/**
+ * State containing a cut scene after the player has beaten the game.
+ * 
+ * @author Matthew Pessa
+ *
+ */
 public class WinState extends BasicGameState {
 
 	DogWarriors game; // game we are a state of

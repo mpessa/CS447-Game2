@@ -10,6 +10,12 @@ import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.EmptyTransition;
 import org.newdawn.slick.state.transition.RotateTransition;
 
+/**
+ * State entered once the player has died. Moves back to the startup state.
+ * 
+ * @author Matthew Pessa
+ *
+ */
 public class GameOverState extends BasicGameState {
 
 	DogWarriors game; // game we are a state of
