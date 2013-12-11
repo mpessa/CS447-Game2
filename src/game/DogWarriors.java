@@ -150,14 +150,23 @@ public class DogWarriors extends StateBasedGame {
 		rDir + "dirt2.png"
 	};
 	
-	
-	
 	// Sounds
 	public static final String[] platformCatSounds = {
-		rDir + "angry.wav",
+		rDir + "Miffed.wav",
+		rDir + "MiffedHigh.wav",
+		rDir + "MiffedHighShort.wav",
+		rDir + "MiffedLow.wav",
 		rDir + "Cry.wav",
 		rDir + "Meow1.wav",
-		rDir + "Meow2.wav"
+		rDir + "Meow2.wav",
+		rDir + "Mrow.wav",
+		rDir + "No.wav",
+		rDir + "Ooomh.wav",
+		rDir + "Puff.wav",
+		rDir + "Puff2.wav",
+		rDir + "Trill.wav",
+		rDir + "What.wav",
+		rDir + "Whur.wav",
 	};
 	
 	public static final String[] dogSounds = {

@@ -18,7 +18,7 @@ public class WorldCat extends Entity {
 	private float dampingFactor = 0.25f; // dog slows down due to friction
 	private float defaultAcceleration = 0.2f;
 	private float acceleration; // amount this dog moves per update
-	private float maxSpeed = 0.5f;
+	private float maxSpeed = 0.3f;
 	public Vector velocity;
 	private int worldX = 30, worldY = 30;
 	private int screenX, screenY;
