@@ -41,12 +41,12 @@ public class Dog extends Entity {
 		super(x, y);
 		this.speed = new Vector(0f, 0f);
 		this.direction = 1;
-		this.level = 1;
+		this.level = 4;
 		this.currentExp = 0;
 		this.nextLevel = 250;
-		this.maxHP = 150;
+		this.maxHP = 15000;
 		this.currentHP = maxHP;
-		this.maxSlobber = 2;
+		this.maxSlobber = 200;
 		this.currentSlobber = maxSlobber;
 		this.slobberRegen = 5000;
 		this.attPwr = 50;

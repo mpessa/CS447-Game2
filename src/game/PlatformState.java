@@ -60,8 +60,10 @@ public class PlatformState extends BasicGameState {
 	public Possum boss;
 	public ArrayList<Cat> cats;
 	
-	public Projectile ball, fBall;
-	public Shield shield;
+	public Projectile fBall;
+	public WaterBall ball;
+	public Shield shield, fShield;
+	public WaterShield wShield;
 	public Powerup powerup;
 	public ArrayList<Projectile> fire;
 	public ArrayList<Shield> shields;
@@ -144,7 +146,8 @@ public class PlatformState extends BasicGameState {
 		this.back = world.new Background(screenCenterX, screenCenterY);
 		this.spike = new Dog(screenCenterX, screenHeight - 70);
 		this.boss = new Possum(4 * screenWidth / 5, screenHeight - 150);
-
+		this.ball = new WaterBall(screenWidth / 2, screenHeight / 2);
+		this.wShield = new WaterShield(spike.getX(), spike.getY());
 	}
 
 	@Override
@@ -211,10 +214,16 @@ public class PlatformState extends BasicGameState {
 			}
 		}
 		for(int i = 0; i < fire.size(); i++){
-			ball = fire.get(i);
+			fBall = fire.get(i);
+			fBall.render(g);
+			if(fBall.type == 0)
+				fBall.fire.draw(fBall.getX(), fBall.getY());
+		}
+		if(ball.exists){
 			ball.render(g);
-			if(ball.type == 0)
-				ball.fire.draw(ball.getX(), ball.getY());
+		}
+		if(wShield.exists){
+			wShield.render(g);
 		}
 		for(int i = 0; i < shields.size(); i++){
 			shield = shields.get(i);
@@ -552,13 +561,13 @@ public class PlatformState extends BasicGameState {
 						if(ninja.cooldown <= 0 && (spike.getY() > ninja.getY() + 10 || spike.getY() < ninja.getY() - 10)){
 							if(ninja.speed.getX() < 0 || ninja.shoot == ninja.shootL){
 								ninja.shoot = ninja.shootL;
-								ball = new Projectile(ninja.getX(), ninja.getY() - 10, -0.3f, 0f, 0, 1);
+								fBall = new Projectile(ninja.getX(), ninja.getY() - 10, -0.3f, 0f, 0, 1);
 							}
 							if(ninja.speed.getX() > 0 || ninja.shoot == ninja.shootR){
 								ninja.shoot = ninja.shootR;
-								ball = new Projectile(ninja.getX(), ninja.getY() - 10, 0.3f, 0f, 0, 0);
+								fBall = new Projectile(ninja.getX(), ninja.getY() - 10, 0.3f, 0f, 0, 0);
 							}
-							fire.add(ball);
+							fire.add(fBall);
 							ninja.sTime = 450;
 							ninja.cooldown = 1500;
 							ninja.shoot.restart();
@@ -576,13 +585,13 @@ public class PlatformState extends BasicGameState {
 							(ninja.canShield && Math.abs(ninja.getX() - spike.getX()) >= 200)){
 						if(ninja.speed.getX() < 0 || ninja.walk == ninja.walkR){
 							ninja.shoot = ninja.shootR;
-							ball = new Projectile(ninja.getX(), ninja.getY() - 10, 0.3f, 0f, 0, 0);
+							fBall = new Projectile(ninja.getX(), ninja.getY() - 10, 0.3f, 0f, 0, 0);
 						}
 						if(ninja.speed.getX() > 0 || ninja.walk == ninja.walkL){
 							ninja.shoot = ninja.shootL;
-							ball = new Projectile(ninja.getX(), ninja.getY() - 10, -0.3f, 0f, 0, 1);
+							fBall = new Projectile(ninja.getX(), ninja.getY() - 10, -0.3f, 0f, 0, 1);
 						}
-						fire.add(ball);
+						fire.add(fBall);
 						ninja.sTime = 450;
 						ninja.cooldown = 1500;
 						ninja.shoot.restart();
@@ -617,13 +626,9 @@ public class PlatformState extends BasicGameState {
 					}
 					else if(Math.abs(ninja.getX() - spike.getX()) <= 150 &&
 							ninja.cooldown <= 0 && ninja.canShield){
-						System.out.println("Fireshield");
-						System.out.println("shields: " + shields.size());
 						shield = new Shield(ninja.getX(), ninja.getY() - 10, 0);
 						shields.add(shield);
 						ninja.shielded = true;
-						System.out.println("Shield added");
-						System.out.println("shields: " + shields.size());
 						ninja.canShield = false;
 						ninja.cooldown = 1000;
 					}
@@ -753,7 +758,6 @@ public class PlatformState extends BasicGameState {
 				if(boss.walk != boss.walkL)
 					boss.change = true;
 			}
-			//System.out.println(Math.abs(boss.getY() - spike.getY()));
 			if(Math.abs(boss.getX() - spike.getX()) <= 200 && spike.getY() < boss.getY() && (boss.onGround ||
 					boss.onP1 || boss.onP2)){
 				System.out.println("Jumping");
@@ -780,13 +784,13 @@ public class PlatformState extends BasicGameState {
 				boss.setVelocity(new Vector(0f, boss.speed.getY()));
 				if(boss.walk == boss.walkR){
 					boss.shoot = boss.shootR;
-					ball = new Projectile(boss.getX(), boss.getY(), 0.3f, 0f, 2, 0);
+					fBall = new Projectile(boss.getX(), boss.getY(), 0.3f, 0f, 2, 0);
 				}
 				if(boss.walk == boss.walkL){
 					boss.shoot = boss.shootL;
-					ball = new Projectile(boss.getX(), boss.getY(), -0.3f, 0f, 2, 1);
+					fBall = new Projectile(boss.getX(), boss.getY(), -0.3f, 0f, 2, 1);
 				}
-				fire.add(ball);
+				fire.add(fBall);
 				boss.shoot.restart();
 			}
 		}
@@ -844,42 +848,38 @@ public class PlatformState extends BasicGameState {
 			if(ninja.dead && ninja.time <= 0){
 				ninja.kill();
 			}
-			for(int j = 0; j < fire.size(); j++){
-				ball = fire.get(j);
-				if(ball.collides(ninja) != null && ball.type == 1){
-					ResourceManager.getSound(DogWarriors.platformSplashSound[0]).play();
-					fire.remove(j);
-					ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
-					ninja.currentHP -= spike.spPwr * 1.5;
-					if(ninja.currentHP <= 0 && !ninja.dead){
-						ninja.currentHP = 0;
-						ninja.time = 570;
-						ninja.dead = true;
-						expEarned += ninja.exp;
-						deadCats++;
-						powerup = new Powerup(ninja.getX(), ninja.getY(), dropPowerup());
-						if(powerup.type != -1)
-							powerups.add(powerup);
-					}
+
+			if(ball.collides(ninja) != null && ball.exists){
+				ResourceManager.getSound(DogWarriors.platformSplashSound[0]).play();
+				ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
+				ninja.currentHP -= spike.spPwr * 1.5;
+				ball.exists = false;
+				if(ninja.currentHP <= 0 && !ninja.dead){
+					ninja.currentHP = 0;
+					ninja.time = 570;
+					ninja.dead = true;
+					expEarned += ninja.exp;
+					deadCats++;
+					powerup = new Powerup(ninja.getX(), ninja.getY(), dropPowerup());
+					if(powerup.type != -1)
+						powerups.add(powerup);
 				}
 			}
-			for(int j = 0; j < shields.size(); j++){
-				shield = shields.get(j);
-				if(shield.collides(ninja) != null && shield.type == 1){
-					ResourceManager.getSound(DogWarriors.platformSplashSound[0]).play();
-					shields.remove(j);
-					ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
-					ninja.currentHP -= spike.spPwr;
-					if(ninja.currentHP <= 0 && !ninja.dead){
-						ninja.currentHP = 0;
-						ninja.time = 570;
-						ninja.dead = true;
-						expEarned += ninja.exp;
-						deadCats++;
-						powerup = new Powerup(ninja.getX(), ninja.getY(), dropPowerup());
-						if(powerup.type != -1)
-							powerups.add(powerup);
-					}
+
+			if(wShield.collides(ninja) != null && wShield.exists){
+				ResourceManager.getSound(DogWarriors.platformSplashSound[0]).play();
+				ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
+				ninja.currentHP -= spike.spPwr;
+				wShield.exists = false;
+				if(ninja.currentHP <= 0 && !ninja.dead){
+					ninja.currentHP = 0;
+					ninja.time = 570;
+					ninja.dead = true;
+					expEarned += ninja.exp;
+					deadCats++;
+					powerup = new Powerup(ninja.getX(), ninja.getY(), dropPowerup());
+					if(powerup.type != -1)
+						powerups.add(powerup);
 				}
 			}
 		}
@@ -904,7 +904,6 @@ public class PlatformState extends BasicGameState {
 				boss.time = 300;
 				spike.currentHP -= boss.attPwr;
 				if(spike.currentHP <= 0){
-					//System.out.println("Kill Spike");
 					killSpike();
 					game.enterState(DogWarriors.STATES_GAMEOVER, new EmptyTransition(), new RotateTransition());
 				}
@@ -939,36 +938,31 @@ public class PlatformState extends BasicGameState {
 				spike.setVelocity(new Vector(-2 * spike.speed.getX(), 0f));
 				boss.setVelocity(new Vector(-2 * boss.speed.getX(), 0f));
 			}
-			for(int i = 0; i < fire.size(); i++){
-				ball = fire.get(i);
-				if(ball.type == 1){
-					if(boss.collides(ball) != null){
-						boss.time = 400;
-						fire.remove(i);
-						boss.setVelocity(new Vector(0f, boss.speed.getY()));
-						boss.currentHP -= (1.5 * spike.spPwr);
-						if(boss.currentHP <= 0){
-							boss.exists = false;
-							powerup = new Powerup(boss.getX(), boss.getY(), 2);
-							powerups.add(powerup);
-						}
+
+			if(ball.exists){
+				if(boss.collides(ball) != null && ball.exists){
+					boss.time = 400;
+					ball.exists = false;
+					boss.setVelocity(new Vector(0f, boss.speed.getY()));
+					boss.currentHP -= (1.5 * spike.spPwr);
+					if(boss.currentHP <= 0){
+						boss.exists = false;
+						powerup = new Powerup(boss.getX(), boss.getY(), 2);
+						powerups.add(powerup);
 					}
 				}
 			}
-			for(int i = 0; i < shields.size(); i++){
-				shield = shields.get(i);
-				if(shield.type == 1){
-					if(boss.collides(shield) != null){
-						boss.time = 400;
-						shields.remove(i);
-						boss.setVelocity(new Vector(0f, boss.speed.getY()));
-						boss.currentHP -= (1.5 * spike.spPwr);
-						if(boss.currentHP <= 0){
-							boss.exists = false;
-						}
-					}
+
+			if(boss.collides(wShield) != null && wShield.exists){
+				boss.time = 400;
+				wShield.exists = false;
+				boss.setVelocity(new Vector(0f, boss.speed.getY()));
+				boss.currentHP -= (1.5 * spike.spPwr);
+				if(boss.currentHP <= 0){
+					boss.exists = false;
 				}
 			}
+
 			if(spike.getX() < 0 || spike.getX() > screenWidth){
 				boss.currentHP = boss.maxHP;
 				boss.setPosition(4 * screenWidth / 5, screenHeight - 150);
@@ -978,26 +972,27 @@ public class PlatformState extends BasicGameState {
 			boss.update(delta);
 		}
 		for(int i = 0; i < fire.size(); i++){
-			ball = fire.get(i);
-			for(int j = 0; j < fire.size(); j++){
-				if(i != j){
-					fBall = fire.get(j);
-					if(ball.collides(fBall) != null && ball.type != fBall.type){
-						fire.remove(j);
-						explode.add(new Bang(fBall.getX(), fBall.getY()));// adding explosion
-						fire.remove(i);
-					}
-				}
+			fBall = fire.get(i);
+			if(ball.collides(fBall) != null && ball.exists){
+				ball.exists = false;
+				ball.setVelocity(new Vector(0f, 0f));
+				explode.add(new Bang(fBall.getX(), fBall.getY()));// adding explosion
+				fire.remove(i);
+			}
+			if(fBall.collides(wShield) != null && wShield.exists){
+				explode.add(new Bang(wShield.getX(), wShield.getY()));// adding explosion
+				fire.remove(i);
+				wShield.exists = false;
 			}
 			for(int j = 0; j < shields.size(); j++){
-				shield = shields.get(j);
-				if(ball.collides(shield) != null && ball.type != shield.type){
-					explode.add(new Bang(shield.getX(), shield.getY()));// adding explosion
-					fire.remove(i);
+				shield = shields.get(j);		
+				if(ball.collides(shield) != null && ball.exists && shield.type == 0){
+					ball.exists = false;
+					explode.add(new Bang(shield.getX(), shield.getY()));
 					shields.remove(j);
 				}
 			}
-			if(ball.collides(spike) != null && ball.type != 1){
+			if(fBall.collides(spike) != null){
 				fire.remove(i);
 				spike.currentHP -= 20;
 				ResourceManager.getSound(DogWarriors.platformBoomSound[0]).play();
@@ -1017,16 +1012,12 @@ public class PlatformState extends BasicGameState {
 		}
 		for(int i = 0; i < shields.size(); i++){
 			shield = shields.get(i);
-			for(int j = 0; j < shields.size(); j++){
-				if(i != j){
-					Shield fShield = shields.get(j);
-					if(fShield.collides(shield) != null && fShield.type != shield.type){
-						shields.remove(i);
-						shields.remove(j);
-						explode.add(new Bang(shield.getX(), shield.getY()));// adding explosion
-					}
-				}
+			if(wShield.collides(shield) != null && wShield.exists){
+				shields.remove(i);
+				wShield.exists = false;
+				explode.add(new Bang(shield.getX(), shield.getY()));// adding explosion
 			}
+
 			if(spike.collides(shield) != null && shield.type != 1){
 				ResourceManager.getSound(DogWarriors.platformBoomSound[1]).play();
 				spike.setVelocity(new Vector(-2 * spike.speed.getX(), -2 * spike.speed.getY()));
@@ -1056,6 +1047,10 @@ public class PlatformState extends BasicGameState {
 				}
 			}
 			powerup.update(delta);
+			
+			if(spike.getX() < 0 || spike.getX() > screenWidth){
+				game.enterState(DogWarriors.STATES_OVERWORLD, new EmptyTransition(), new RotateTransition());
+			}
 		}
 		
 		
@@ -1087,28 +1082,23 @@ public class PlatformState extends BasicGameState {
 			spike.kicking = false;
 			spike.endKick();
 		}
-		//if(spike.shot && spike.sTime >= 0){
 		if (spike.shot && spike.sTime <= 40 && spike.sTime >= 20) {
 			if(spike.direction == 1) {
-				ball = new Projectile(spike.getX(), spike.getY(), 0f, 0f, 1, 0);
+				ball.setPosition(spike.getX(), spike.getY());
+				ball.exists = true;
 			}
 			if(spike.direction == 0) {
-				ball = new Projectile(spike.getX() + 10, spike.getY(), 0f, 0f, 1, 0);
+				ball.setPosition(spike.getX() + 10, spike.getY());
+				ball.exists = true;
 			}
-			fire.add(ball);
 		}
 		if (spike.shot && spike.sTime <= 0) {
 			spike.shot = false;
-			for(int i = 0; i < fire.size(); i++){
-				ball = fire.get(i);
-				if(ball.type == 1){
-					if(spike.shoot == spike.shootR) {
-						ball.setVelocity(new Vector(0.5f, 0f));
-					}
-					if(spike.shoot == spike.shootL) {
-						ball.setVelocity(new Vector(-0.5f, 0f));
-					}
-				}
+			if(spike.shoot == spike.shootR) {
+				ball.setVelocity(new Vector(0.5f, 0f));
+			}
+			if(spike.shoot == spike.shootL) {
+				ball.setVelocity(new Vector(-0.5f, 0f));
 			}
 		}
 		for (int i = 0; i < fire.size(); i++) {
@@ -1118,11 +1108,9 @@ public class PlatformState extends BasicGameState {
 				fire.remove(i);
 			}
 		}
+		ball.update(delta);
 		for(int i = 0; i < shields.size(); i++){
 			shield = shields.get(i);
-			if (shield.type == 1) {
-				shield.setPosition(spike.getX() - 5, spike.getY());
-			}
 			for(int j = 0; j < cats.size(); j++){
 				ninja = cats.get(j);
 				if(shield.type == 0 && ninja.shielded){
@@ -1130,6 +1118,7 @@ public class PlatformState extends BasicGameState {
 				}
 			}
 		}
+		wShield.setPosition(spike.getX() - 5, spike.getY());
 		spike.update(delta);
 		if(cats.size() == deadCats && !levelOver && !boss.exists){
 			ResourceManager.getSound(DogWarriors.music[1]).stop();
@@ -1141,7 +1130,6 @@ public class PlatformState extends BasicGameState {
 		if(levelOver){
 			overTimer -= delta;
 			if(overTimer <= 0){
-				//System.out.println("Leave the platform");
 				game.enterState(DogWarriors.STATES_OVERWORLD, new EmptyTransition(), new RotateTransition());
 			}
 		}
@@ -1178,10 +1166,12 @@ public class PlatformState extends BasicGameState {
 			spike.clearShapes();
 			spike.jump();
 			this.cats.clear();
+			this.fire.clear();
 			chooseLevel(level);
 			this.levelOver = false;
 			spike.levelUp = false;
 			this.active = true;
+			boss.exists = false;
 			if(checkForBoss(spike.level) == 1){
 				boss.exists = true;
 			}
@@ -1268,8 +1258,7 @@ public class PlatformState extends BasicGameState {
 		if(input.isKeyPressed(DogWarriors.CONTROLS_SHIELD) && spike.cooldown <= 0 && 
 				spike.level >= 4 && spike.currentSlobber >= 4) {
 			spike.currentSlobber -= 4;
-			shield = new Shield(spike.getX() - 5, spike.getY(), 1);
-			shields.add(shield);
+			wShield.exists = true;
 			ResourceManager.getSound(DogWarriors.platformSplashSound[0]).play();
 			spike.cooldown = 1500;
 		}
