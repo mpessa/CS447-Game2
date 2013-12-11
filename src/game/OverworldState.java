@@ -295,6 +295,7 @@ public class OverworldState extends BasicGameState {
 			break;
 		case(4): // the game is returning from platform world
 			if (this.catHit != null) this.catHit.exists = false;
+			ResourceManager.getSound(DogWarriors.music[2]).play();
 			break;
 		default: // the game is starting and we need a new game
 				for (ArrayList<TownMap> a : this.mapList) {

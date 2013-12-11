@@ -20,13 +20,34 @@ import org.newdawn.slick.state.StateBasedGame;
  * @author Mitchel Pulley
  */
 
-/**
- * Resources
- * Splash sound provided by: Michel Baradari at http://opengameart.org/content/lava-splash
- * Boom sound provided by: dKlon http://opengameart.org/content/atari-booms
- * Kick sound for dog provided by: kddekadenz http://opengameart.org/content/break-pumpkin
- *
- */
+/*
+* Resources
+* Splash sound provided by: Michel Baradari at http://opengameart.org/content/lava-splash
+* Boom sound provided by: dKlon http://opengameart.org/content/atari-booms
+* Kick sound for dog provided by: kddekadenz http://opengameart.org/content/break-pumpkin
+* OverWorld items provided by: Jetrel, Daniel Cook, Zabin http://opengameart.org/content/2d-lost-garden-tileset-transition-to-jetrels-wood-tileset
+* explosion provided by: qubodup http://opengameart.org/content/bomb-explosion-animation
+* explosion provided by: DJ Chronos:http://www.freesound.org/people/DJ%20Chronos/sounds/123236/
+* Bang class provided by: Dr. Wallace from bounce tutorial.
+* cat fighter add on by: dogchicken http://opengameart.org/content/cat-fighter-addon1-energy-force-master-kit 
+* cat fighter sprite sheet by: dogchicken http://opengameart.org/content/cat-fighter-sprite-sheet 
+* cat fighter remix by: dogChicken http://opengameart.org/content/dog-fighter-cat-fighter-remix-base-add-on-one
+* cloudy sky provided by: MiniBjorn http://opengameart.org/content/cloudy-sky
+* slobber ball provided by: thomaswp http://opengameart.org/content/2d-object-pack
+* fireballs provided by: bart http://opengameart.org/content/pixel-art-flame-icon
+* possum provided by: Redshrike http://opengameart.org/content/the-awesome-possum-ultimate-smash-friends
+* slobber potion provided by: Rafaelchm http://opengameart.org/content/potion-bottles 
+* bone provided by: bart http://opengameart.org/content/pixel-art-femur 
+* cat sounds provided by Mitch
+* dog ouch sound provided by Dr Wallace
+* dog bark provided by: panikko http://www.freesound.org/people/panikko/sounds/130030/
+* intro music provided by: mikeUSA http://opengameart.org/content/exportbass2
+* platform level music provided by: yd http://opengameart.org/content/oriented
+* Overworld level music provided by: james_longley http://freesound.org/people/james_longley/sounds/172921/
+* Win screen music provided by: Retimer http://opengameart.org/content/wgs-music-41-vs-tom-3-loops
+* Thunder sound provided by: nicStage http://freesound.org/people/nicStage/sounds/64458/
+* Doh sound provided by: n3b http://opengameart.org/content/doh
+*/
 public class DogWarriors extends StateBasedGame {
 
 	// Location of game resources
@@ -158,6 +179,10 @@ public class DogWarriors extends StateBasedGame {
 		rDir + "Cry.wav",
 		rDir + "Meow1.wav",
 		rDir + "Meow2.wav"
+	};
+	
+	public static final String[] platformBossSound = {
+		rDir + "doh_wav_cut.wav"
 	};
 	
 	public static final String[] dogSounds = {
