@@ -44,7 +44,7 @@ public class Dog extends Entity {
 		this.level = 1;
 		this.currentExp = 0;
 		this.nextLevel = 250;
-		this.maxHP = 150;
+		this.maxHP = 200;
 		this.currentHP = maxHP;
 		this.maxSlobber = 2;
 		this.currentSlobber = maxSlobber;

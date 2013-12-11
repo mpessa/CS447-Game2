@@ -1052,6 +1052,7 @@ public class PlatformState extends BasicGameState {
 					powerups.remove(i);
 				}
 				if(powerup.type == 2){
+					killSpike();
 					game.enterState(DogWarriors.STATES_WIN, new EmptyTransition(), new RotateTransition());
 				}
 			}
@@ -1182,6 +1183,7 @@ public class PlatformState extends BasicGameState {
 			spike.levelUp = false;
 			this.active = true;
 			boss.exists = false;
+			boss.currentHP = boss.maxHP;
 			if(checkForBoss(spike.level) == 1){
 				boss.exists = true;
 			}
@@ -1474,7 +1476,7 @@ public class PlatformState extends BasicGameState {
 	
 	private void killSpike(){
 		spike.level = 1;
-		spike.maxHP = 100;
+		spike.maxHP = 200;
 		spike.currentHP = spike.maxHP;
 		spike.maxSlobber = 2;
 		spike.currentSlobber = spike.maxSlobber;

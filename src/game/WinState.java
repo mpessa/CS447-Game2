@@ -134,6 +134,7 @@ public class WinState extends BasicGameState {
 	public void enter(GameContainer container, StateBasedGame game) throws SlickException {
 		container.getInput().clearKeyPressedRecord();
 		ResourceManager.getSound(DogWarriors.music[3]).play();
+		timer = 0;
 	}
 
 	@Override
