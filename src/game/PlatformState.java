@@ -98,6 +98,8 @@ public class PlatformState extends BasicGameState {
 		for (String s : DogWarriors.explosionImage) {
 			ResourceManager.loadImage(s);
 		}
+		
+		System.out.println("Loading Sounds...");
 		for  (String s : DogWarriors.platformCatSounds){
 			ResourceManager.loadSound(s);
 		}
@@ -119,7 +121,7 @@ public class PlatformState extends BasicGameState {
 		for (String s : DogWarriors.music){
 			ResourceManager.loadSound(s);
 		}
-		
+		System.out.println("Done");
 		
 		this.font1 = new Font("Dialog", Font.BOLD, 36);
 		this.uFont1 = new TrueTypeFont(font1, false);
@@ -800,7 +802,8 @@ public class PlatformState extends BasicGameState {
 			ninja = cats.get(i);
 			if(spike.collides(ninja) != null && ninja.hitTime <= 0 &&
 				spike.getCoarseGrainedMaxY() < ninja.getY() - 10 && spike.speed.getY() >= 0 && !ninja.dead) {
-				ResourceManager.getSound(DogWarriors.platformCatSounds[0]).play();
+				int sIndex =(int) Math.floor((Math.random() * 4));
+				ResourceManager.getSound(DogWarriors.platformCatSounds[sIndex]).play();
 				spike.setVelocity(spike.speed.negate());
 				ninja.setVelocity(new Vector(0f, 0f));
 				ninja.currentHP -= spike.attPwr;
@@ -820,7 +823,8 @@ public class PlatformState extends BasicGameState {
 				}
 			}
 			else if(spike.collides(ninja) != null && ninja.hitTime <= 0 && spike.kTime > 0 && !ninja.dead){
-				ResourceManager.getSound(DogWarriors.platformCatSounds[1]).play();
+				int sIndex = 4 + (int) (Math.floor(Math.random() * 11));
+				ResourceManager.getSound(DogWarriors.platformCatSounds[sIndex]).play();
 				ninja.setVelocity(new Vector(0f, 0f));
 				ninja.currentHP -= (0.5f * spike.spPwr);
 				if(ninja.currentHP <= 0 && !ninja.dead){
