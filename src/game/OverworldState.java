@@ -249,7 +249,7 @@ public class OverworldState extends BasicGameState {
         	} else {
         		if (dog.isNear(cat, cat.sightRange)) {
         			Vector catToDog = new Vector(dog.getPosition().subtract(cat.getPosition()));
-        			float s = cat.sightFactor;
+        			float s = cat.sightFactor * ((float) Math.random() * 15.0f);
         			s = s * (float) (Math.random()) * (cat.sightFactor);
         			catToDog = catToDog.scale(s);
         			cat.setVelocity(cat.getVelocity().add(catToDog).clampLength(0.0f, cat.getMaxSpeed()));
