@@ -1,0 +1,40 @@
+Authors: 
+Matthew Pessa - matthew.pessa@gmail.com
+Abel Hoxeng - ahoxeng79@gmail.com
+Mitch Pulley - mipu42@gmail.com
+
+Summary: 
+This is an action/RPG game. The mission in the game is to retrieve a golden bone after
+leveling up. The player obtains abilities as they increase their level and the enemy cats
+become harder as well. 
+
+Controls:
+
+Overworld state:
+
+	WASD - Move the character
+	P - Pause the game
+	ESC - Reset the game
+
+Platform state:
+
+	AD - Move the character
+	W - Jump
+	S - Drop down from a platform
+	
+	Abilities:
+
+		K - Spinning kick
+		J - Shoot a slobber ball
+		L - Surround with a slobber shield
+
+Cheats:
+
+1 - Move to the platform state ( if in Overworld state)
+1 - Move to Overworld state ( if in platform state)
+
+2 - Go to end of game(Win) state from beginning scene
+
+License:
+
+Feel free to distribute as you would like
