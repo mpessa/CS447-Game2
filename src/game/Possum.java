@@ -60,10 +60,7 @@ public class Possum extends Entity{
 		this.inAir = new ConvexPolygon(22, 30);
 		this.kick1 = new ConvexPolygon(27f, 58f);
 		this.kick2 = new ConvexPolygon(65f, 12f);
-		//this.addShape(normal, new Vector(7f, 7f), null, Color.black);
 		this.addShape(inAir, new Vector(6f, 15f));
-		//this.addShape(kick1, new Vector(9f, 7f), null, Color.black);
-		//this.addShape(kick2, new Vector(9f, 6f), null, Color.black);
 		this.bestowAbilities();
 	}
 	

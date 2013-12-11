@@ -15,7 +15,7 @@
 	</classpathentry>
 	<classpathentry kind="lib" path="/lib/lwjgl-2.9.0/jar/jinput.jar">
 		<attributes>
-			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="lib/lwjgl-2.9.0/native/macosx"/>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="lib/lwjgl-2.9.0/native/linux"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="output" path="bin"/>

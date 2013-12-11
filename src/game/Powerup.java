@@ -5,7 +5,6 @@ import jig.Entity;
 import jig.ResourceManager;
 import jig.Vector;
 
-import org.newdawn.slick.Color;
 import org.newdawn.slick.SlickException;
 
 /**
@@ -31,11 +30,11 @@ public class Powerup extends Entity{
 		
 		if(type == 0){ // Slobber replacement
 			this.addImage(ResourceManager.getImage(DogWarriors.powerupImages[0]));
-			this.addShape(new ConvexPolygon(10, 30), new Vector(0f, 0f), null, Color.black);
+			this.addShape(new ConvexPolygon(10, 30), new Vector(0f, 0f));
 		}
 		if(type == 1){ // Health increase
 			this.addImage(ResourceManager.getImage(DogWarriors.powerupImages[1]));
-			this.addShape(new ConvexPolygon(50f, 12f), new Vector(0f, 0f), null, Color.black);
+			this.addShape(new ConvexPolygon(50f, 12f), new Vector(0f, 0f));
 		}
 		if(type == 2){ // Chewtoy to end the game
 			this.addImage(ResourceManager.getImage(DogWarriors.powerupImages[2]));

@@ -63,8 +63,8 @@ public class StartupState extends BasicGameState {
 	}
 	
 	public void processKeyInput(Input input) {
-		if (input.isKeyDown(Input.KEY_RETURN)) { // start the Overworld state
-			game.enterState(DogWarriors.STATES_OVERWORLD, new EmptyTransition(), new VerticalSplitTransition());
+		if (input.isKeyDown(Input.KEY_RETURN)) { // start the Beginning state
+			game.enterState(DogWarriors.STATES_BEGINNING, new EmptyTransition(), new VerticalSplitTransition());
 			
 		} else if (input.isKeyDown(Input.KEY_ESCAPE)) { // quit the game
 			container.exit();

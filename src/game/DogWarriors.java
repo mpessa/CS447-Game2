@@ -160,6 +160,10 @@ public class DogWarriors extends StateBasedGame {
 		rDir + "Meow2.wav"
 	};
 	
+	public static final String[] dogSounds = {
+		rDir + "bark.wav"
+	};
+	
 	public static final String[] platformSplashSound = {
 		rDir + "splash.wav"
 	};
@@ -179,6 +183,17 @@ public class DogWarriors extends StateBasedGame {
 	
 	public static final String[] platformDogKick = {
 		rDir + "pumpkin_break_01_0.wav"
+	};
+	
+	public static final String[] sounds = {
+		rDir + "thunder.wav"
+	};
+	
+	public static final String[] music = {
+		rDir + "exportbass2.wav",
+		rDir + "Oriented.wav",
+		rDir + "over.wav",
+		rDir + "win.wav"
 	};
 	
 	// Overworld Level Data
@@ -223,6 +238,7 @@ public class DogWarriors extends StateBasedGame {
 	public static final int CONTROLS_QUIT = Input.KEY_ESCAPE;
 	public static final int CONTROLS_START = Input.KEY_RETURN;
 	public static final int CONTROLS_MAP = Input.KEY_M;
+	public static final int CONTROLS_CHEAT_2 = Input.KEY_2;
 	
 	// States Mapping
 	public static final int STATES_STARTUP = 0;
@@ -230,12 +246,16 @@ public class DogWarriors extends StateBasedGame {
 	public static final int STATES_TRANSITION = 2;
 	public static final int STATES_OVERWORLD = 3;
 	public static final int STATES_PLATFORM = 4;
+	public static final int STATES_BEGINNING = 5;
+	public static final int STATES_GAMEOVER = 6;
+	public static final int STATES_WIN = 7;
 	
 	// Game-level variables
 	public static int ScreenHeight, ScreenWidth;
 	public static int TileWidth = 32;
 	
 	private int prevState; // save the previous state
+	public int currentState; // keep the current state
 	
 	//private Boolean newGameRequested = false;
 	//private int hiScore = 0;
@@ -255,6 +275,9 @@ public class DogWarriors extends StateBasedGame {
 		this.addState(new LevelTransitionState(container, this));
 		this.addState(new OverworldState(container, this));
 		this.addState(new PlatformState(container, this));
+		this.addState(new BeginningState(container, this));
+		this.addState(new GameOverState(container, this));
+		this.addState(new WinState(container, this));
 	}
 	
 	@Override
@@ -279,6 +302,10 @@ public class DogWarriors extends StateBasedGame {
 	
 	public void setPrevState(int p) {
 		this.prevState = p;
+	}
+	
+	public void setCurrentState(int p){
+		this.currentState = p;
 	}
 	
 	public int getPrevState() {

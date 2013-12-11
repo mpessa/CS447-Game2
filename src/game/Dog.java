@@ -1,7 +1,6 @@
 package game;
 
 import org.newdawn.slick.Animation;
-import org.newdawn.slick.Color;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.SpriteSheet;
 
@@ -45,9 +44,9 @@ public class Dog extends Entity {
 		this.level = 1;
 		this.currentExp = 0;
 		this.nextLevel = 250;
-		this.maxHP = 100;
+		this.maxHP = 150;
 		this.currentHP = maxHP;
-		this.maxSlobber = 20;
+		this.maxSlobber = 2;
 		this.currentSlobber = maxSlobber;
 		this.slobberRegen = 5000;
 		this.attPwr = 50;

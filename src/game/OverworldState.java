@@ -3,7 +3,7 @@ package game;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Random;
+//import java.util.Random;
 
 import jig.Collision;
 import jig.ResourceManager;
@@ -44,8 +44,10 @@ public class OverworldState extends BasicGameState {
 	private int numRenders = 0;
 	private int numCDs = 0;
 	
-	private int randomX;
-	private int randomY;
+	//private int randomX;
+	//private int randomY;
+	
+	private boolean active;
 	
 	// size of world map in pixels
 	private final int mapWidth = TownMap.TILESIZE * TownMap.WIDTH;
@@ -76,7 +78,7 @@ public class OverworldState extends BasicGameState {
 	private ArrayList<TownTile> shrubs; // drawn above Spike
 	
 	// cat-related
-	private Random rand;
+	//private Random rand;
 	private WorldCat catHit = null; // the cat we hit to get to the platform state
 	private Vector catVelocity = new Vector(0.2f, 0.0f);
 	
@@ -114,6 +116,9 @@ public class OverworldState extends BasicGameState {
 		for (String s : DogWarriors.roadImages) {
 			ResourceManager.loadImage(s);
 		}
+		for(String s : DogWarriors.music){
+			ResourceManager.loadSound(s);
+		}
 		
 		this.game = (DogWarriors) game;
 		this.container = container;
@@ -134,7 +139,9 @@ public class OverworldState extends BasicGameState {
 		//this.powerups = new ArrayList<Powerups>();
 		this.shrubs = new ArrayList<TownTile>();
 		
-		this.rand = new Random();
+		this.active = false;
+		
+		//this.rand = new Random();
 	}
 
 	@Override
@@ -215,6 +222,10 @@ public class OverworldState extends BasicGameState {
 			flashTimer = 0;
 		}
 		
+		if(!ResourceManager.getSound(DogWarriors.music[2]).playing() && this.active){
+			ResourceManager.getSound(DogWarriors.music[2]).play();
+		}
+		
 		// Input
 		Input input = container.getInput();
 		processKeyInput(input);
@@ -276,41 +287,7 @@ public class OverworldState extends BasicGameState {
 	public void enter(GameContainer container, StateBasedGame game) throws SlickException {
 		container.getInput().clearKeyPressedRecord();
 		switch((((DogWarriors) game).getPrevState())) {
-		case(0): // the game is starting, and we need a new game
-			for (ArrayList<TownMap> a : this.mapList) {
-				a.clear();
-			}
-			this.mapList.clear();
-			this.numMaps = 0;
-			this.numCDs = 0;
-			this.numRenders = 0;
-			this.mapIndexX = 0;
-			this.mapIndexY = 0;
-			this.frontierX = 0;
-			this.frontierY = 0;
-			this.buildings.clear();
-			this.walls.clear();
-			this.cats.clear();
-			this.exitTiles.clear();
-			this.grassTiles.clear();
-			this.shrubs.clear();
-			this.roadTiles.clear();
-			this.mapDisplay = false;
-			this.flash = false;
-			this.flashTimer = 0;
-			
-			
-			TownMap m = new TownMap(14, 14, 14, 14, true, 0, 0, 0);
-			m.highwayEW = true;
-			m.highwayNS = true;
-			ArrayList<TownMap> col0 = new ArrayList<TownMap>();
-			col0.add(m);
-			mapList.add(col0);
-			this.numMaps = 1;
-			
-			this.changeLevel(0, 0);
-			this.dog = new WorldDog(currentMap.dogSpawn.scale(TownMap.TILESIZE));
-			
+		case(0): // the startup state, should not be entering from there			
 			break;
 		case(1): // the game was un-paused, and we should do nothing
 			break;
@@ -319,12 +296,51 @@ public class OverworldState extends BasicGameState {
 		case(4): // the game is returning from platform world
 			if (this.catHit != null) this.catHit.exists = false;
 			break;
+		default: // the game is starting and we need a new game
+				for (ArrayList<TownMap> a : this.mapList) {
+					a.clear();
+				}
+				this.mapList.clear();
+				this.numMaps = 0;
+				this.numCDs = 0;
+				this.numRenders = 0;
+				this.mapIndexX = 0;
+				this.mapIndexY = 0;
+				this.frontierX = 0;
+				this.frontierY = 0;
+				this.buildings.clear();
+				this.walls.clear();
+				this.cats.clear();
+				this.exitTiles.clear();
+				this.grassTiles.clear();
+				this.shrubs.clear();
+				this.roadTiles.clear();
+				this.mapDisplay = false;
+				this.flash = false;
+				this.flashTimer = 0;
+				this.active = true;
+				
+				
+				TownMap m = new TownMap(14, 14, 14, 14, true, 0, 0, 0);
+				m.highwayEW = true;
+				m.highwayNS = true;
+				ArrayList<TownMap> col0 = new ArrayList<TownMap>();
+				col0.add(m);
+				mapList.add(col0);
+				this.numMaps = 1;
+				
+				this.changeLevel(0, 0);
+				ResourceManager.getSound(DogWarriors.music[2]).play();
+				this.dog = new WorldDog(currentMap.dogSpawn.scale(TownMap.TILESIZE));
+				
 		}
 	}
 
 	@Override
 	public void leave(GameContainer container, StateBasedGame game) {
 		container.getInput().clearKeyPressedRecord();
+		this.active = false;
+		ResourceManager.getSound(DogWarriors.music[2]).stop();
 		((DogWarriors) game).setPrevState(this.getID());
 	}
 	
@@ -504,8 +520,8 @@ public class OverworldState extends BasicGameState {
 	 */
 	private void changeLevel(int destX, int destY) {
 		// save information from previous level
-		int outgoingX = mapIndexX;
-		int outgoingY = mapIndexY;
+		//int outgoingX = mapIndexX;
+		//int outgoingY = mapIndexY;
 		cats.clear();
 		grassTiles.clear();
 		exitTiles.clear();

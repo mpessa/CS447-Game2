@@ -16,7 +16,6 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.TrueTypeFont;
-import org.newdawn.slick.UnicodeFont;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.EmptyTransition;
@@ -44,10 +43,11 @@ public class PlatformState extends BasicGameState {
 	private int catX, catY;
 	private int level, expEarned, deadCats, overTimer;
 	
-	private Font font1, font2;
-	private TrueTypeFont uFont1, uFont2;
+	private Font font1;
+	private TrueTypeFont uFont1;
 	
 	private boolean levelOver;
+	private boolean active;
 	
 	private Random random;
 	
@@ -114,12 +114,13 @@ public class PlatformState extends BasicGameState {
 		for (String s : DogWarriors.platformExplosion){
 			ResourceManager.loadSound(s);
 		}
+		for (String s : DogWarriors.music){
+			ResourceManager.loadSound(s);
+		}
 		
 		
 		this.font1 = new Font("Dialog", Font.BOLD, 36);
-		//this.font2 = new Font("Dialog", Font.BOLD, 20);
 		this.uFont1 = new TrueTypeFont(font1, false);
-		//this.uFont2 = new TrueTypeFont(font2, false);
 
 		this.game = (DogWarriors) game;
 		this.container = container;
@@ -132,6 +133,7 @@ public class PlatformState extends BasicGameState {
 		this.catY = 30;
 		
 		this.levelOver = false;
+		this.active = false;
 		
 		this.cats = new ArrayList<Cat>(5);
 		this.fire = new ArrayList<Projectile>(5);
@@ -148,7 +150,7 @@ public class PlatformState extends BasicGameState {
 	@Override
 	public void render(GameContainer container, StateBasedGame game, Graphics g)
 			throws SlickException {
-		//g.setFont(uFont2);
+		g.setColor(Color.black);
 		back.render(g);
 		t1.render(g);
 		t2.render(g);
@@ -257,6 +259,10 @@ public class PlatformState extends BasicGameState {
 		Input input = container.getInput();
 		processKeyInput(input);
 		
+		//Play the platform music
+		if(!ResourceManager.getSound(DogWarriors.music[1]).playing() && !levelOver && active){
+			ResourceManager.getSound(DogWarriors.music[1]).play();
+		}
 		// Spike Vs. The Platforms
 		if(spike.collides(g1) != null && spike.speed.getY() > 0){
 			spike.setVelocity(new Vector(0f, 0f));
@@ -796,7 +802,8 @@ public class PlatformState extends BasicGameState {
 				ninja.currentHP -= spike.attPwr;
 				ninja.hitTime = 300;
 				if(ninja.currentHP <= 0 && !ninja.dead){
-					ninja.time = 600;
+					ninja.currentHP = 0;
+					ninja.time = 570;
 					ninja.dead = true;
 					expEarned += ninja.exp;
 					deadCats++;
@@ -808,12 +815,13 @@ public class PlatformState extends BasicGameState {
 					}
 				}
 			}
-			else if(spike.collides(ninja) != null && ninja.hitTime <= 0 && spike.kTime > 0){
+			else if(spike.collides(ninja) != null && ninja.hitTime <= 0 && spike.kTime > 0 && !ninja.dead){
 				ResourceManager.getSound(DogWarriors.platformCatSounds[1]).play();
 				ninja.setVelocity(new Vector(0f, 0f));
 				ninja.currentHP -= (0.5f * spike.spPwr);
 				if(ninja.currentHP <= 0 && !ninja.dead){
-					ninja.time = 600;
+					ninja.currentHP = 0;
+					ninja.time = 570;
 					ninja.dead = true;
 					expEarned += ninja.exp;
 					deadCats++;
@@ -823,13 +831,15 @@ public class PlatformState extends BasicGameState {
 				}
 				ninja.hitTime = 300;
 			}
-			else if(spike.collides(ninja) != null && ninja.hitTime <= 0){
+			else if(spike.collides(ninja) != null && ninja.hitTime <= 0 && !ninja.dead){
 				ResourceManager.getSound(DogWarriors.platformDogHitSound[0]).play();
 				spike.setVelocity(new Vector(0f, 0f));
 				spike.currentHP -= ninja.attPwr;
 				ninja.hitTime = 300;
-				if(spike.currentHP <= 0)
-					System.out.println("Kill Spike");
+				if(spike.currentHP <= 0){
+					killSpike();
+					game.enterState(DogWarriors.STATES_GAMEOVER, new EmptyTransition(), new RotateTransition());
+				}
 			}
 			if(ninja.dead && ninja.time <= 0){
 				ninja.kill();
@@ -842,7 +852,8 @@ public class PlatformState extends BasicGameState {
 					ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
 					ninja.currentHP -= spike.spPwr * 1.5;
 					if(ninja.currentHP <= 0 && !ninja.dead){
-						ninja.time = 600;
+						ninja.currentHP = 0;
+						ninja.time = 570;
 						ninja.dead = true;
 						expEarned += ninja.exp;
 						deadCats++;
@@ -860,7 +871,8 @@ public class PlatformState extends BasicGameState {
 					ninja.setVelocity(new Vector(0f, ninja.speed.getY()));
 					ninja.currentHP -= spike.spPwr;
 					if(ninja.currentHP <= 0 && !ninja.dead){
-						ninja.time = 600;
+						ninja.currentHP = 0;
+						ninja.time = 570;
 						ninja.dead = true;
 						expEarned += ninja.exp;
 						deadCats++;
@@ -892,7 +904,9 @@ public class PlatformState extends BasicGameState {
 				boss.time = 300;
 				spike.currentHP -= boss.attPwr;
 				if(spike.currentHP <= 0){
-					System.out.println("Kill Spike");
+					//System.out.println("Kill Spike");
+					killSpike();
+					game.enterState(DogWarriors.STATES_GAMEOVER, new EmptyTransition(), new RotateTransition());
 				}
 			}
 			else if(boss.collides(spike) != null && boss.time <= 0 && spike.kicking
@@ -913,7 +927,9 @@ public class PlatformState extends BasicGameState {
 				boss.time = 300;
 				spike.currentHP -= (1.5 * boss.attPwr);
 				if(spike.currentHP <= 0){
-					System.out.println("Kill Spike");
+					//System.out.println("Kill Spike");
+					killSpike();
+					game.enterState(DogWarriors.STATES_GAMEOVER, new EmptyTransition(), new RotateTransition());
 				}
 			}
 			else if(boss.collides(spike) != null && boss.kicking && spike.kicking &&
@@ -985,6 +1001,10 @@ public class PlatformState extends BasicGameState {
 				fire.remove(i);
 				spike.currentHP -= 20;
 				ResourceManager.getSound(DogWarriors.platformBoomSound[0]).play();
+				if(spike.currentHP <= 0){
+					killSpike();
+					game.enterState(DogWarriors.STATES_GAMEOVER, new EmptyTransition(), new RotateTransition());
+				}
 				if(ball.getX() > spike.getX()){
 					spike.setVelocity(new Vector(-0.1f, spike.speed.getY()));
 					spike.time = 200;
@@ -1012,6 +1032,10 @@ public class PlatformState extends BasicGameState {
 				spike.setVelocity(new Vector(-2 * spike.speed.getX(), -2 * spike.speed.getY()));
 				spike.time = 200;
 				spike.currentHP -= 50;
+				if(spike.currentHP <= 0){
+					killSpike();
+					game.enterState(DogWarriors.STATES_GAMEOVER, new EmptyTransition(), new RotateTransition());
+				}
 			}
 		}
 		for(int i = 0; i < powerups.size(); i++){
@@ -1028,7 +1052,7 @@ public class PlatformState extends BasicGameState {
 					powerups.remove(i);
 				}
 				if(powerup.type == 2){
-					// End the game
+					game.enterState(DogWarriors.STATES_WIN, new EmptyTransition(), new RotateTransition());
 				}
 			}
 			powerup.update(delta);
@@ -1108,6 +1132,7 @@ public class PlatformState extends BasicGameState {
 		}
 		spike.update(delta);
 		if(cats.size() == deadCats && !levelOver && !boss.exists){
+			ResourceManager.getSound(DogWarriors.music[1]).stop();
 			spike.currentExp += expEarned;
 			levelOver = true;
 			System.out.println("Experience earned = " + expEarned);
@@ -1116,7 +1141,7 @@ public class PlatformState extends BasicGameState {
 		if(levelOver){
 			overTimer -= delta;
 			if(overTimer <= 0){
-				System.out.println("Leave the platform");
+				//System.out.println("Leave the platform");
 				game.enterState(DogWarriors.STATES_OVERWORLD, new EmptyTransition(), new RotateTransition());
 			}
 		}
@@ -1152,10 +1177,14 @@ public class PlatformState extends BasicGameState {
 			spike.onP2 = false;
 			spike.clearShapes();
 			spike.jump();
-			cats.clear();
+			this.cats.clear();
 			chooseLevel(level);
-			levelOver = false;
+			this.levelOver = false;
 			spike.levelUp = false;
+			this.active = true;
+			if(checkForBoss(spike.level) == 1){
+				boss.exists = true;
+			}
 			if(!boss.exists){
 				spike.setPosition(screenCenterX, screenHeight - 100);
 				addCats();
@@ -1171,6 +1200,7 @@ public class PlatformState extends BasicGameState {
 	@Override
 	public void leave(GameContainer container, StateBasedGame game) {
 		container.getInput().clearKeyPressedRecord();
+		this.active = false;
 		((DogWarriors) game).setPrevState(this.getID());
 	}
 	
@@ -1262,6 +1292,9 @@ public class PlatformState extends BasicGameState {
 			game.enterState(DogWarriors.STATES_OVERWORLD, new EmptyTransition(), new RotateTransition());
 		}
 		
+		if (input.isKeyPressed(DogWarriors.CONTROLS_CHEAT_2)) { // Enter win state(for testing)
+			game.enterState(DogWarriors.STATES_WIN, new EmptyTransition(), new RotateTransition());
+		}
 		if (input.isKeyPressed(DogWarriors.CONTROLS_PAUSE)) { // pause the game
 			game.enterState(DogWarriors.STATES_PAUSED, new EmptyTransition(), new HorizontalSplitTransition());
 		}
@@ -1336,6 +1369,30 @@ public class PlatformState extends BasicGameState {
 		}
 		else
 			return 0;
+	}
+	
+	private int checkForBoss(int level){
+		random = new Random();
+		float x = random.nextFloat();
+		if(level == 3){
+			if(x <= 0.2){
+				return 1;
+			}
+			else{
+				return 0;
+			}
+		}
+		else if(level >= 4){
+			if(x <= 0.4){
+				return 1;
+			}
+			else{
+				return 0;
+			}
+		}
+		else{
+			return 0;
+		}
 	}
 	
 	private int numberOfCats(){
@@ -1413,6 +1470,22 @@ public class PlatformState extends BasicGameState {
 			return 0;
 		else
 			return 1;
+	}
+	
+	private void killSpike(){
+		spike.level = 1;
+		spike.maxHP = 100;
+		spike.currentHP = spike.maxHP;
+		spike.maxSlobber = 2;
+		spike.currentSlobber = spike.maxSlobber;
+		spike.attPwr = 50;
+		spike.spPwr = 100;
+		spike.currentExp = 0;
+		spike.nextLevel = 250;
+		cats.clear();
+		powerups.clear();
+		fire.clear();
+		shields.clear();
 	}
 	
 	public void chooseLevel(int i){
